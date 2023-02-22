@@ -1,0 +1,70 @@
+body {
+  background-color: gray;
+}
+
+#container {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  height: 100vh;
+}
+
+header {
+  text-align: center;
+}
+
+header nav ul {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  background-color: black;
+  list-style-type: none;
+  padding: 0;
+  border: 1px solid white;
+}
+
+header nav li {
+  text-align: center;
+  padding: 0.5em 1.5em;
+}
+
+header nav a {
+  text-decoration: none;
+  color: white;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
+
+main {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 1 40%;
+          flex: 0 1 40%;
+}
+
+aside {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 1 60%;
+          flex: 0 1 60%;
+  padding: 0.5em 1.5em;
+  background-color: lightgray;
+}
+
+aside .chartBox {
+  width: 400px;
+}
+
+footer {
+  text-align: center;
+  background-color: black;
+  color: white;
+  padding: 0.5em 1.5em;
+  margin-top: 0.5em;
+  border: 1px solid white;
+}
+/*# sourceMappingURL=dashboard.css.map */

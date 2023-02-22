@@ -2,12 +2,40 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="dashboard_css/dashboard.scss">
-        <script src="dashboard_js/dashboard.js"></script>
-        <title>Cryo Interface</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link rel="stylesheet" href="dashboard/dashboard_css/dashboard.css">
+        <script src="dashboard/dashboard_js/dashboard.js"></script>
+        <title>CryoInterface</title>
     </head>
 
     <body>
+        <header> 
+            <h1>Multi-Sensor Platform</h1>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="about.html">About</a></li>
+                </ul>
+            </nav>
 
+        </header>
+        <div id = "container">
+            <main>
+                <h2>Control Panel:</h2>
+
+            </main>
+            <aside>
+                <div class="chartBox">
+                    <canvas id="thermocoupleTop"></canvas>
+                </div>
+                <div class="chartBox">
+                    <canvas id="thermocoupleBot"></canvas>
+                </div>
+                <div class="chartBox">
+                    <canvas id="rfsensorTop"></canvas>
+                </div>
+            </aside>
+        </div>
+        <footer>Multi-Sensor Platform</footer>
     </body>
 </html>
