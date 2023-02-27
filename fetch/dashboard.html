@@ -2,12 +2,70 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="dashboard_css/dashboard.scss">
-        <script src="dashboard_js/dashboard.js"></script>
-        <title>Cryo Interface</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link rel="stylesheet" href="dashboard/dashboard_css/dashboard.css">
+        <script src="dashboard/dashboard_js/dashboard.js"></script>
+        <title>CryoInterface</title>
     </head>
 
     <body>
+        <header> 
+            <h1>Multi-Sensor Platform</h1>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="about.html">About</a></li>
+                </ul>
+            </nav>
+        </header>
+        <!-- Form inspired by W3Scools https://www.w3schools.com/howto/howto_js_form_steps.asp -->
+        <form id="setup" action="javascript:void(0)" >
+            <h1>Experiment Information:</h1>
+            <div id="first" class="metaInfo">Name:
+                <p><input type="text" placeholder="First Name" oninput="this.className = ''" required></p>
+                <p><input type = "text" placeholder="Last Name" oninput="this.className = ''" required></p>
+            </div>
+            <div class="metaInfo">Configuration:
+                <p><select id="graphNum" name="Configuration" required>
+                    <option value="" selected disabled>Set a Configuration</option>
+                    <option value="2">1 VNA, 1 Temp sensor</option>
+                    <option value="3">1 VNA, 2 Temp sensors</option>
+                    <option value="4">2 VNAs, 2 Temp sensors</option>
+                  </select></p>
+            </div>
+            <div class="metaInfo">Calibration:
+                <p>Have you calibrated your instruments?</p>
+                <p>
+                    <label><input type="radio" name="cal" value="yes" required>Yes</label>
+                  
+                  <label><input type="radio" name="cal" value="no" required>No</label></p>
+            </div>
+            <div>
+                <button type="submit" id="submit">Submit</button>
+            </div>
+            
+        </form>
+        <!-- -------------------------------------------------------------------------------- -->
 
+        <div id = "container">
+            <main>
+                <h2>Control Panel:</h2>
+            </main>
+            <aside>
+                <div class="chartBox">
+                    <canvas id="thermocoupleTop"></canvas>
+                </div>
+                <div class="chartBox">
+                    <canvas id="thermocoupleBot"></canvas>
+                </div>
+                <div class="chartBox">
+                    <canvas id="rfsensorTop"></canvas>
+                </div>
+                <div class="chartBox">
+                    <canvas id="rfsensorBot"></canvas>
+                </div>
+            </aside>
+        </div>
+        <footer>Multi-Sensor Platform</footer>
     </body>
 </html>
