@@ -36,7 +36,6 @@ window.addEventListener( "load", start, false );
 
 function loadGraphs() {
   // const gnum = parseInt(document.getElementById("graphNum").value);
-  console.log(gnum);
   //Render Charts:
   const thermocoupleTop = document.getElementById('thermocoupleTop');
   const thermocoupleBot = document.getElementById('thermocoupleBot');
@@ -62,7 +61,6 @@ function loadGraphs() {
       }
     }
   });
-
 
   new Chart(rfTop, {
     type: 'line',
@@ -132,10 +130,4 @@ function loadGraphs() {
   
 
 }
-
-
-
-
-
-
 
