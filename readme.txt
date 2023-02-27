@@ -3,7 +3,7 @@ Multi-Sensor Platform for Monitoring Cryoprotective Agents (CPAs)
 Advisor:
 Professor Rhonda Franklin
 
-TAs:
+Graduate Student Advisors:
 Dametre 
 Yicheng
 
