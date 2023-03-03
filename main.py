@@ -1,5 +1,6 @@
 
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import json
 from typing import Dict, List
 from urllib.parse import urlparse
 
@@ -27,9 +28,21 @@ def build_response_handler(app_thread):
                 self.end_headers()
         
         def do_POST(self):
-            # TODO: handle metadata from form -> POST /metadata
             # TODO: handle updates to experiment config (sampling rate, etc)
-            self.send_response_only(404)
+            parsed = urlparse(self.path)
+            if parsed.path in ['/metadata']:
+                # TODO: check that the content type is json
+                # TODO: handle metadata from form
+                length = int(self.headers.get('content-length'))
+                content = self.rfile.read(length)
+                data = json.loads(content)
+                print(data)
+                # TODO: return an error if data is invalid
+                self.send_response_only(200)
+                self.end_headers()
+            else:
+                self.send_response_only(404)
+                self.end_headers()
 
         def send_file_response(self, path: str, content_type='text/html'):
             self.send_response(200)  # OK

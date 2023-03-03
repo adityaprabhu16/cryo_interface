@@ -12,13 +12,41 @@ function start()
     gnum = dropDown.value;
     console.log(gnum);
   });
+
   form.addEventListener("submit", loadGraphs());
+
   form.addEventListener("submit", function(){
     const graphs = document.getElementById("container");
     graphs.style.display = "flex";
     form.style.display = "none";
     gnum = parseInt(document.getElementById("graphNum").value);
-  })
+  });
+
+  form.addEventListener("submit", function(){
+    fetch('/metadata', {
+      method: 'post',
+      body: JSON.stringify({
+        'random': 0,
+        'junk': 1,
+        'data': 2,
+      }),
+    }).catch((error) => {
+      console.log(error);
+    });
+  });
+
+  var select = document.getElementById("graphNum");
+
+  // TODO: load available options here
+  var options = ['a', 'b', 'c', 'd'];
+
+  for (var i = 0; i < options.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = options[i];
+    select.appendChild(opt);
+  }
+
 } // end function start
 
 // on the window load event,call the start function
