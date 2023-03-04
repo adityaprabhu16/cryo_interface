@@ -17,12 +17,28 @@ def build_response_handler(app_thread):
                 self.send_file_response('fetch/index.html')
             elif parsed.path in ['/dashboard', '/dashboard.html']:
                 self.send_file_response('fetch/dashboard.html')
-            elif parsed.path in ['/chart.js']:
+            elif parsed.path == '/chart.js':
                 self.send_file_response('fetch/chart.js', content_type='application/javascript')
-            elif parsed.path in ['/dashboard.js']:
+            elif parsed.path == '/dashboard.js':
                 self.send_file_response('fetch/dashboard.js', content_type='application/javascript')
-            elif parsed.path in ['/dashboard.css']:
+            elif parsed.path == '/dashboard.css':
                 self.send_file_response('fetch/dashboard.css', content_type='text/css')
+            elif parsed.path == '/api/metadata':
+                # TODO
+                self.send_response_only(500)
+                self.end_headers()
+            elif parsed.path == '/api/config':
+                # TODO
+                self.send_response_only(500)
+                self.end_headers()
+            elif parsed.path == '/api/stream_data':
+                # TODO
+                self.send_response_only(500)
+                self.end_headers()
+            elif parsed.path == '/api/running':
+                # TODO
+                self.send_response_only(500)
+                self.end_headers()
             else:
                 self.send_response_only(404)
                 self.end_headers()
@@ -30,7 +46,7 @@ def build_response_handler(app_thread):
         def do_POST(self):
             # TODO: handle updates to experiment config (sampling rate, etc)
             parsed = urlparse(self.path)
-            if parsed.path in ['/metadata']:
+            if parsed.path == '/api/metadata':
                 # TODO: check that the content type is json
                 # TODO: handle metadata from form
                 length = int(self.headers.get('content-length'))
@@ -39,6 +55,26 @@ def build_response_handler(app_thread):
                 print(data)
                 # TODO: return an error if data is invalid
                 self.send_response_only(200)
+                self.end_headers()
+            elif parsed.path == '/api/update_devices':
+                # TODO
+                self.send_response_only(500)
+                self.end_headers()
+            elif parsed.path == '/api/config':
+                # TODO
+                self.send_response_only(500)
+                self.end_headers()
+            elif parsed.path == '/api/stream_data':
+                # TODO
+                self.send_response_only(500)
+                self.end_headers()
+            elif parsed.path == '/api/stop':
+                # TODO
+                self.send_response_only(500)
+                self.end_headers()
+            elif parsed.path == '/api/generate_combined_csv':
+                # TODO
+                self.send_response_only(500)
                 self.end_headers()
             else:
                 self.send_response_only(404)

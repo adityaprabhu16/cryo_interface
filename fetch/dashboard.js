@@ -23,7 +23,7 @@ function start()
   });
 
   form.addEventListener("submit", function(){
-    fetch('/metadata', {
+    fetch('/api/metadata', {
       method: 'post',
       body: JSON.stringify({
         'random': 0,
