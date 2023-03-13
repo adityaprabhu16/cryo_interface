@@ -15,6 +15,40 @@ config = {}
 running = False
 
 
+import sys
+import glob
+import serial
+
+
+def serial_ports():
+    """
+    Lists serial port names.
+    Source: https://stackoverflow.com/questions/12090503/listing-available-com-ports-with-python
+
+    :raises EnvironmentError: On unsupported or unknown platforms
+    :returns: A list of the serial ports available on the system
+    """
+    if sys.platform.startswith('win'):
+        ports = ['COM%s' % (i + 1) for i in range(256)]
+    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+        # this excludes your current terminal "/dev/tty"
+        ports = glob.glob('/dev/tty[A-Za-z]*')
+    elif sys.platform.startswith('darwin'):
+        ports = glob.glob('/dev/tty.*')
+    else:
+        raise EnvironmentError('Unsupported platform')
+
+    result = []
+    for port in ports:
+        try:
+            s = serial.Serial(port)
+            s.close()
+            result.append(port)
+        except (OSError, serial.SerialException):
+            pass
+    return result
+
+
 def build_response_handler(app_thread):
 
     class ResponseHandler(BaseHTTPRequestHandler):
@@ -49,6 +83,9 @@ def build_response_handler(app_thread):
                     time.sleep(5)
             elif parsed.path == '/api/running':
                 self.send_json_response(running)
+            elif parsed.path == '/api/previous_experiments':
+                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
+                self.end_headers()
             else:
                 self.send_response_only(HTTPStatus.NOT_FOUND)
                 self.end_headers()
@@ -91,6 +128,21 @@ def build_response_handler(app_thread):
                 # TODO: implement this once we have some data to work with
                 self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
                 self.end_headers()
+            elif parsed.path == '/api/start':
+                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
+                self.end_headers()
+            elif parsed.path == '/api/create_experiment':
+                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
+                self.end_headers()
+            elif parsed.path == '/api/select_existing_experiment':
+                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
+                self.end_headers()
+            elif parsed.path == '/api/create_experiment':
+                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
+                self.end_headers()
+            elif parsed.path == '/api/select_existing_experiment':
+                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
+                self.end_headers()
             else:
                 self.send_response_only(HTTPStatus.NOT_FOUND)
                 self.end_headers()
@@ -117,8 +169,10 @@ def build_response_handler(app_thread):
             """
             :return: list of available devices
             """
-            # TODO: actually search for devices
+            # TODO: determine what type of device each connection corresponds to (VNA or MCU)
+            # return serial_ports()
             return ['VNA 1', 'VNA 2', 'Temp 1', 'Temp 2']
+
     
     return ResponseHandler
 
