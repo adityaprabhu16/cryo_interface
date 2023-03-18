@@ -1,8 +1,11 @@
 
+import glob
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
-import time
+import os
+import serial
+import sys
 from typing import Dict, List
 from urllib.parse import urlparse
 
@@ -12,18 +15,12 @@ from app_thread import AppThread
 # I don't like global variables
 metadata: Dict[str, str] = {}
 config = {}
-running = False
 
 
-import sys
-import glob
-import serial
-
-
-def serial_ports():
+def find_available_devices() -> Dict[str, str]:
     """
     Lists serial port names.
-    Source: https://stackoverflow.com/questions/12090503/listing-available-com-ports-with-python
+    Based off of: https://stackoverflow.com/questions/12090503/listing-available-com-ports-with-python
 
     :raises EnvironmentError: On unsupported or unknown platforms
     :returns: A list of the serial ports available on the system
@@ -38,15 +35,22 @@ def serial_ports():
     else:
         raise EnvironmentError('Unsupported platform')
 
-    result = []
+    result: Dict[str, str] = {}
     for port in ports:
         try:
             s = serial.Serial(port)
+            s.write('*IDN?\n'.encode('utf-8'))
+            s.flush()
+            r = s.readline().decode('utf-8').rstrip()
             s.close()
-            result.append(port)
+            result[port] = r
         except (OSError, serial.SerialException):
             pass
     return result
+
+
+def find_previous_experiments() -> List[str]:
+    return [dir[0] for dir in os.walk('experiments/')]
 
 
 def build_response_handler(app_thread):
@@ -61,6 +65,8 @@ def build_response_handler(app_thread):
                 self.send_file_response('fetch/dashboard.html')
             elif parsed.path == '/chart.js':
                 self.send_file_response('fetch/chart.js', content_type='application/javascript')
+            elif parsed.path == '/plotly-2.19.1.min.js':
+                self.send_file_response('fetch/plotly-2.19.1.min.js', content_type='application/javascript')
             elif parsed.path == '/dashboard.js':
                 self.send_file_response('fetch/dashboard.js', content_type='application/javascript')
             elif parsed.path == '/dashboard.css':
@@ -70,22 +76,22 @@ def build_response_handler(app_thread):
             elif parsed.path == '/api/config':
                 self.send_json_response(config)
             elif parsed.path == '/api/devices':
-                devices = self.find_available_devices()
+                devices = find_available_devices()
                 self.send_json_response(devices)
             elif parsed.path == '/api/stream_data':
                 self.send_response(HTTPStatus.OK)
-                self.send_header('Content-type', 'application/json')
+                self.send_header('Content-type', 'text/event-stream')
                 self.end_headers()
+                # TODO: we should create a new queue here so that multiple browser tabs can be open at once
                 while True:
-                    # TODO: send actual data from devices
-                    s = 'event: test\ndata: ' + json.dumps({'time': time.time()}) + '\n\n'
+                    data = app_thread.queue.get()
+                    s = 'event: test\ndata: ' + json.dumps(data) + '\n\n'
                     self.wfile.write(s.encode('utf-8'))
-                    time.sleep(5)
+                # TODO: delete the queue once the connection is lost
             elif parsed.path == '/api/running':
-                self.send_json_response(running)
+                self.send_json_response(app_thread.running)
             elif parsed.path == '/api/previous_experiments':
-                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
-                self.end_headers()
+                self.send_json_response(find_previous_experiments())
             else:
                 self.send_response_only(HTTPStatus.NOT_FOUND)
                 self.end_headers()
@@ -119,28 +125,30 @@ def build_response_handler(app_thread):
                 self.send_response_only(HTTPStatus.OK)
                 self.end_headers()
                 # TODO: return the updated config?
-            elif parsed.path == '/api/stop':
-                self.send_response_only(HTTPStatus.OK)
-                self.end_headers()
-                global running
-                running = False
             elif parsed.path == '/api/generate_combined_csv':
-                # TODO: implement this once we have some data to work with
+                # TODO: implement this last (once we have some data to work with)
                 self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
                 self.end_headers()
             elif parsed.path == '/api/start':
-                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
+                app_thread.start()
+                self.send_response_only(HTTPStatus.OK)
+                self.end_headers()
+            elif parsed.path == '/api/stop':
+                app_thread.stop()
+                self.send_response_only(HTTPStatus.OK)
                 self.end_headers()
             elif parsed.path == '/api/create_experiment':
-                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
+                # TODO: look at provided metadata to determine the directory name
+                # TODO: store this directory name for later
+                dir = 'NAME_CPA_DATE'
+                os.mkdir(os.path.join(['experiment', dir]))
+                self.send_response_only(HTTPStatus.OK)
                 self.end_headers()
             elif parsed.path == '/api/select_existing_experiment':
-                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
-                self.end_headers()
-            elif parsed.path == '/api/create_experiment':
-                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
-                self.end_headers()
-            elif parsed.path == '/api/select_existing_experiment':
+                # dir = ''
+                # Check that dir is in the list of allowed dirs
+                # Save this as our dir to use
+                # return metadata
                 self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
                 self.end_headers()
             else:
@@ -151,7 +159,7 @@ def build_response_handler(app_thread):
             self.send_response(HTTPStatus.OK)
             self.send_header('Content-type', content_type)
             self.end_headers()
-            with open(path) as f:
+            with open(path, encoding='utf-8') as f:
                 self.wfile.write(f.read().encode('utf-8'))
         
         def send_json_response(self, data):
@@ -164,16 +172,7 @@ def build_response_handler(app_thread):
             # TODO: we'll want to put this file into the correct folder
             with open('metadata.json', 'w') as wf:
                 wf.write(json.dumps(metadata))
-            
-        def find_available_devices(self) -> List[str]:
-            """
-            :return: list of available devices
-            """
-            # TODO: determine what type of device each connection corresponds to (VNA or MCU)
-            # return serial_ports()
-            return ['VNA 1', 'VNA 2', 'Temp 1', 'Temp 2']
 
-    
     return ResponseHandler
 
 
@@ -185,13 +184,11 @@ def run_server(server_class, handler_class):
 
 def main():
     app_thread = AppThread()
-    app_thread.start()
     try:
         run_server(ThreadingHTTPServer, build_response_handler(app_thread))
-    except KeyboardInterrupt:
+    except:
         app_thread.stop()
-        print('KeyboardInterrupt: Shutting down.')
-        pass
+        print('Application stopped.')
 
 
 if __name__ == "__main__":
