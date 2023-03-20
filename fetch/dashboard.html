@@ -3,12 +3,61 @@
     <head>
         <script src="plotly-2.19.1.min.js"></script>
         <script>
+            function handleSubmit(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const formProps = Object.fromEntries(formData);
+                console.log(formData)
+            }
 
+            function start() {
+                fetch('/api/start', {
+                    method: 'POST'
+                }).then(res => {
+                    if (res.status == 200) {
+                        alert('Data collection started!');
+                    } else {
+                        alert('Encountered an error.');
+                        console.log(res);
+                    }
+                });
+            }
+
+            function stop() {
+                fetch('/api/stop', {
+                    method: 'POST'
+                }).then(res => {
+                    if (res.status == 200) {
+                        alert('Data collection stopped!');
+                    } else {
+                        alert('Encountered an error.');
+                        console.log(res);
+                    }
+                });
+            }
         </script>
     </head>
     <body>
+        <form id="create-experiment">
+            Name: <input type="text" name="name">
+            <br>
+            CPA: <input type="text" name="cpa">
+            <br>
+            Date: <input type="text" name="date">
+            <br>
+            <input type="submit" value="Create Experiment">
+        </form>
+        <br>
+        <br>
+        <button type="button" onclick="start()">Start</button>
+        <button type="button" onclick="stop()">Stop</button>
+        <br>
+        <br>
         <div id="temp_plot"></div>
-        <script>    
+        <script>
+            const form = document.getElementById("create-experiment");
+            form.addEventListener("submit", handleSubmit);
+
             Plotly.newPlot("temp_plot", {
                 "data": [{
                     "x": [],

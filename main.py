@@ -138,7 +138,11 @@ def build_response_handler(app_thread: AppThread):
                 logging.exception('An error occured while serving stream data.')
 
         def create_experiment(self) -> None:
-            # TODO: make sure that we haven't already selected an experiment
+            # Make sure that we haven't already selected an experiment.
+            if app_thread.experiment_selected:
+                self.send_response_only(HTTPStatus.BAD_REQUEST)
+                self.end_headers()
+                return
 
             # We expect JSON content for this request.
             if self.headers.get('content-type') != 'application/json':
