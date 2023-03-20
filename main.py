@@ -1,59 +1,18 @@
 
-import glob
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import logging
+from metadata import Metadata
 import os
-import serial
-import sys
-from typing import Dict, List
+from typing import Dict
 from urllib.parse import urlparse
 
 from app_thread import AppThread
+from utils import EnhancedJSONEncoder, find_available_devices, find_previous_experiments
 
 
-# I don't like global variables
-metadata: Dict[str, str] = {}
-config = {}
-
-
-def find_available_devices() -> Dict[str, str]:
-    """
-    Lists serial port names.
-    Based off of: https://stackoverflow.com/questions/12090503/listing-available-com-ports-with-python
-
-    :raises EnvironmentError: On unsupported or unknown platforms
-    :returns: A list of the serial ports available on the system
-    """
-    if sys.platform.startswith('win'):
-        ports = ['COM%s' % (i + 1) for i in range(256)]
-    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-        # this excludes your current terminal "/dev/tty"
-        ports = glob.glob('/dev/tty[A-Za-z]*')
-    elif sys.platform.startswith('darwin'):
-        ports = glob.glob('/dev/tty.*')
-    else:
-        raise EnvironmentError('Unsupported platform')
-
-    result: Dict[str, str] = {}
-    for port in ports:
-        try:
-            s = serial.Serial(port)
-            s.write('*IDN?\n'.encode('utf-8'))
-            s.flush()
-            r = s.readline().decode('utf-8').rstrip()
-            s.close()
-            result[port] = r
-        except (OSError, serial.SerialException):
-            pass
-    return result
-
-
-def find_previous_experiments() -> List[str]:
-    return [dir[0] for dir in os.walk('experiments/')]
-
-
-def build_response_handler(app_thread):
+def build_response_handler(app_thread: AppThread):
 
     class ResponseHandler(BaseHTTPRequestHandler):
 
@@ -72,22 +31,21 @@ def build_response_handler(app_thread):
             elif parsed.path == '/dashboard.css':
                 self.send_file_response('fetch/dashboard.css', content_type='text/css')
             elif parsed.path == '/api/metadata':
-                self.send_json_response(metadata)
+                self.send_response(HTTPStatus.OK)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(app_thread.metadata, cls=EnhancedJSONEncoder).encode('utf-8'))
             elif parsed.path == '/api/config':
-                self.send_json_response(config)
+                self.send_response(HTTPStatus.OK)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(app_thread.config, cls=EnhancedJSONEncoder).encode('utf-8'))
             elif parsed.path == '/api/devices':
+                # TODO: right now this only reports which ports devices are connected to
                 devices = find_available_devices()
                 self.send_json_response(devices)
             elif parsed.path == '/api/stream_data':
-                self.send_response(HTTPStatus.OK)
-                self.send_header('Content-type', 'text/event-stream')
-                self.end_headers()
-                # TODO: we should create a new queue here so that multiple browser tabs can be open at once
-                while True:
-                    data = app_thread.queue.get()
-                    s = 'event: test\ndata: ' + json.dumps(data) + '\n\n'
-                    self.wfile.write(s.encode('utf-8'))
-                # TODO: delete the queue once the connection is lost
+                self.stream_data()
             elif parsed.path == '/api/running':
                 self.send_json_response(app_thread.running)
             elif parsed.path == '/api/previous_experiments':
@@ -105,13 +63,12 @@ def build_response_handler(app_thread):
                     return
                 length = int(self.headers.get('content-length'))
                 content = self.rfile.read(length)
-                global metadata
-                metadata = json.loads(content)
-                self.save_metadata()
-                print(metadata)
-                # TODO: return an error if data is invalid (make sure we have the fields we need)
-                self.send_response_only(HTTPStatus.OK)
+                # TODO
+                # metadata = json.loads(content)
+                # self.save_metadata()
+                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
                 self.end_headers()
+                # TODO: return updated metadata
             elif parsed.path == '/api/config':
                 if self.headers.get('content-type') != 'application/json':
                     self.send_response_only(HTTPStatus.BAD_REQUEST)
@@ -119,31 +76,29 @@ def build_response_handler(app_thread):
                     return
                 length = int(self.headers.get('content-length'))
                 content = self.rfile.read(length)
-                # TODO: it will be important to verify that the config is valid
-                global config
-                config = json.loads(content)
-                self.send_response_only(HTTPStatus.OK)
+                # TODO
+                # config = json.loads(content)
+                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
                 self.end_headers()
-                # TODO: return the updated config?
+                # TODO: return the updated config
             elif parsed.path == '/api/generate_combined_csv':
                 # TODO: implement this last (once we have some data to work with)
                 self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
                 self.end_headers()
             elif parsed.path == '/api/start':
-                app_thread.start()
-                self.send_response_only(HTTPStatus.OK)
-                self.end_headers()
+                if app_thread.experiment_selected:
+                    app_thread.running = True
+                    self.send_response_only(HTTPStatus.OK)
+                    self.end_headers()
+                else:
+                    self.send_response_only(HTTPStatus.BAD_REQUEST)
+                    self.end_headers()
             elif parsed.path == '/api/stop':
-                app_thread.stop()
+                app_thread.running = False
                 self.send_response_only(HTTPStatus.OK)
                 self.end_headers()
             elif parsed.path == '/api/create_experiment':
-                # TODO: look at provided metadata to determine the directory name
-                # TODO: store this directory name for later
-                dir = 'NAME_CPA_DATE'
-                os.mkdir(os.path.join(['experiment', dir]))
-                self.send_response_only(HTTPStatus.OK)
-                self.end_headers()
+                self.create_experiment()
             elif parsed.path == '/api/select_existing_experiment':
                 # dir = ''
                 # Check that dir is in the list of allowed dirs
@@ -167,11 +122,76 @@ def build_response_handler(app_thread):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps(data).encode('utf-8'))
-        
-        def save_metadata(self) -> None:
-            # TODO: we'll want to put this file into the correct folder
-            with open('metadata.json', 'w') as wf:
-                wf.write(json.dumps(metadata))
+
+        def stream_data(self) -> None:
+            self.send_response(HTTPStatus.OK)
+            self.send_header('Content-type', 'text/event-stream')
+            self.end_headers()
+            queue = app_thread.get_queue()
+            try:
+                while True:
+                    data: Dict = queue.get()
+                    s = 'event: test\ndata: ' + json.dumps(data) + '\n\n'
+                    self.wfile.write(s.encode('utf-8'))
+            except Exception:
+                app_thread.queue_pool.remove(queue)
+                logging.exception('An error occured while serving stream data.')
+
+        def create_experiment(self) -> None:
+            # TODO: make sure that we haven't already selected an experiment
+
+            # We expect JSON content for this request.
+            if self.headers.get('content-type') != 'application/json':
+                self.send_response_only(HTTPStatus.BAD_REQUEST)
+                self.end_headers()
+                return
+
+            # Determine content length, read the data, decode it, and load it as JSON.
+            length = int(self.headers.get('content-length'))
+            content = self.rfile.read(length).decode('utf-8')
+            metadata = json.loads(content)
+
+            # Name, cpa, and date must be present for the operation to be sucessful.
+            if 'name' not in metadata or 'cpa' not in metadata or 'date' not in metadata:
+                self.send_response_only(HTTPStatus.BAD_REQUEST)
+                self.end_headers()
+
+            name = metadata['name']
+            cpa = metadata['cpa']
+            date = metadata['date']
+
+            directory = f'{name}_{cpa}_{date}'
+
+            try:
+                # Attempt to create the directory for storing experimental data.
+                os.makedirs(os.path.join('experiments', directory))
+            except FileExistsError:
+                # If the directory already exists log a warning and exit.
+                logging.warning('The requested directory already exists.')
+                self.send_response_only(HTTPStatus.BAD_REQUEST)
+                self.end_headers()
+                return
+            except Exception:
+                # If we encounter an unexpected exception log it and return.
+                logging.exception('Error creating experiment directory.')
+                self.send_response_only(HTTPStatus.BAD_REQUEST)
+                self.end_headers()
+                return
+            
+            app_thread.metadata = Metadata(name=name, cpa=cpa, date=date)
+            app_thread.dir = directory
+            app_thread.experiment_selected = True
+
+            self.save_metadata()
+            self.send_response_only(HTTPStatus.OK)
+            self.end_headers()
+
+        def save_metadata(self) -> bool:
+            if app_thread.dir:
+                with open(os.path.join('experiments', app_thread.dir, 'metadata.json'), 'w') as wf:
+                    wf.write(json.dumps(app_thread.metadata, cls=EnhancedJSONEncoder))
+                return True
+            return False
 
     return ResponseHandler
 
@@ -184,6 +204,7 @@ def run_server(server_class, handler_class):
 
 def main():
     app_thread = AppThread()
+    app_thread.start()
     try:
         run_server(ThreadingHTTPServer, build_response_handler(app_thread))
     except:
