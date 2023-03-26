@@ -1,13 +1,99 @@
-<!DOCTYPE html>
 <html>
     <head>
         <script src="plotly-2.19.1.min.js"></script>
         <script>
-            function handleSubmit(e) {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-                const formProps = Object.fromEntries(formData);
-                console.log(formData)
+
+        </script>
+    </head>
+    <body>
+        <div>
+            <!-- <form id="create_experiment" method="post" action="http://localhost:4951/api/create_experiment"> -->
+            <form id="create_experiment">
+                <p>
+                    <label for="name">name</label>
+                    <input id="name" name="name" type="text" required>
+                </p>
+                <p>
+                    <label for="date">date</label>
+                    <input type="text" id="date" name="date" required>
+                </p>
+                <p>
+                    <label for="cpa">CPA</label>
+                    <input type="text" id="cpa" name="cpa" required>
+                </p>
+                <p>
+                    <label for="vna1">VNA1</label>
+                    <input type="text" id="vna1" name="vna1">
+                </p>
+                <p>
+                    <label for="vna2">VNA2</label>
+                    <input type="text" id="vna2" name="vna2">
+                </p>
+                <input type="submit" value="Submit">
+            </form>
+            
+            
+        </div>
+        <div>
+            <button id="startup">Start Logging</button>
+            <button id="stop">Stop Logging</button>
+        </div>
+        <div id="temp_plot"></div>
+        <script>
+            var expSelected = false;
+            var formExp = document.getElementById("create_experiment");
+            formExp.addEventListener("submit", ExpFrmHandler);
+
+            document.getElementById("startup").addEventListener("click", startStream);
+            document.getElementById("stop").addEventListener("click", stop);
+
+            var tempPlot = Plotly.newPlot("temp_plot", {
+                "data": [{
+                    "x": [],
+                    "y": [],
+                }, {
+                    "x": [],
+                    "y": [],
+                }],
+                "layout": { "width": 600, "height": 400, "title": 'My plot'},
+                "type": "line"
+            });
+
+            function ExpFrmHandler(event){
+                event.preventDefault();
+                // capture the form data
+                const formData = new FormData(event.target);
+                console.log(formData.entries());
+                // convert the form data to JSON format
+                const jsonObj = Object.fromEntries(formData.entries());
+                console.log(jsonObj);
+                const jsonData = JSON.stringify(jsonObj);
+
+                fetch('/api/create_experiment', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        "length": jsonData.length.toString()
+                    },
+                    method: "POST",
+                    body: jsonData
+                }).then(function(res){
+                    console.log(res.body);
+                    expSelected = true;
+                })
+                .catch(function(res){ 
+                    console.log(res);
+                    console.log("Failed to create experiment");
+                })
+
+                // // send the JSON data using XMLHttpRequest
+                // const xhr = new XMLHttpRequest();
+                // xhr.open('POST', '/api/create_experiment');
+                // xhr.setRequestHeader('Content-Type', 'application/json');
+                // // var len = jsonData.length
+                // // xhr.setRequestHeader('Content-Length', len.toString());
+
+                // xhr.send(jsonData);
             }
 
             function start() {
@@ -35,45 +121,35 @@
                     }
                 });
             }
-        </script>
-    </head>
-    <body>
-        <form id="create-experiment">
-            Name: <input type="text" name="name">
-            <br>
-            CPA: <input type="text" name="cpa">
-            <br>
-            Date: <input type="text" name="date">
-            <br>
-            <input type="submit" value="Create Experiment">
-        </form>
-        <br>
-        <br>
-        <button type="button" onclick="start()">Start</button>
-        <button type="button" onclick="stop()">Stop</button>
-        <br>
-        <br>
-        <div id="temp_plot"></div>
-        <script>
-            const form = document.getElementById("create-experiment");
-            form.addEventListener("submit", handleSubmit);
 
-            Plotly.newPlot("temp_plot", {
-                "data": [{
-                    "x": [],
-                    "y": [],
-                }, {
-                    "x": [],
-                    "y": [],
-                }],
-                "layout": { "width": 600, "height": 400}
-            });
+            function startStream(){
+                if(!expSelected){
+                    console.alert("No experiment selected");
+                }
+                else{
+                    start();
+                    console.log("startStream");
+                    displayData();
+                }
+                
+            }
+            
 
-            var evtSource = new EventSource("api/stream_data");
-            evtSource.addEventListener('test', (event) => {
-                // TODO: add data to plot
-                console.log(event.data);
-            });
+            
+
+            
+            function displayData(){
+                var evtSource = new EventSource("api/stream_data");
+                evtSource.addEventListener('test', (event) => {
+                    // TODO: add data to plot
+
+                    console.log(event.data);
+                    var dataJSON = JSON.parse(event.data);
+                    Plotly.extendTraces('temp_plot', {x: [[dataJSON.time]], y: [[(dataJSON.temp1)/2]]}, [0]);
+                    Plotly.extendTraces('temp_plot', {x: [[dataJSON.time]], y: [[dataJSON.temp2]]}, [1]);
+                });
+            }
+            
         </script>
     </body>
 </html>
