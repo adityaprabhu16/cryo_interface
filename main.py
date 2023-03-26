@@ -20,16 +20,8 @@ def build_response_handler(app_thread: AppThread):
             parsed = urlparse(self.path)
             if parsed.path in ['/', '/index', '/index.html']:
                 self.send_file_response('fetch/index.html')
-            elif parsed.path in ['/dashboard', '/dashboard.html']:
-                self.send_file_response('fetch/dashboard.html')
-            elif parsed.path == '/chart.js':
-                self.send_file_response('fetch/chart.js', content_type='application/javascript')
             elif parsed.path == '/plotly-2.19.1.min.js':
                 self.send_file_response('fetch/plotly-2.19.1.min.js', content_type='application/javascript')
-            elif parsed.path == '/dashboard.js':
-                self.send_file_response('fetch/dashboard.js', content_type='application/javascript')
-            elif parsed.path == '/dashboard.css':
-                self.send_file_response('fetch/dashboard.css', content_type='text/css')
             elif parsed.path == '/api/metadata':
                 self.send_response(HTTPStatus.OK)
                 self.send_header('Content-type', 'application/json')
@@ -61,7 +53,7 @@ def build_response_handler(app_thread: AppThread):
                     self.send_response_only(HTTPStatus.BAD_REQUEST)
                     self.end_headers()
                     return
-                length = int(self.headers.get('content-length'))
+                length = int(self.headers.get('length'))
                 content = self.rfile.read(length)
                 # TODO
                 # metadata = json.loads(content)
@@ -74,7 +66,7 @@ def build_response_handler(app_thread: AppThread):
                     self.send_response_only(HTTPStatus.BAD_REQUEST)
                     self.end_headers()
                     return
-                length = int(self.headers.get('content-length'))
+                length = int(self.headers.get('length'))
                 content = self.rfile.read(length)
                 # TODO
                 # config = json.loads(content)
@@ -151,7 +143,7 @@ def build_response_handler(app_thread: AppThread):
                 return
 
             # Determine content length, read the data, decode it, and load it as JSON.
-            length = int(self.headers.get('content-length'))
+            length = int(self.headers.get('length'))
             content = self.rfile.read(length).decode('utf-8')
             metadata = json.loads(content)
 

@@ -1,25 +1,145 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
     <head>
-        <meta charset="utf-8">
-        <script src="chart.js"></script>
-        <link rel="stylesheet" href="dashboard.css">
-        <script src="dashboard.js"></script>
-        <title>CryoInterface</title>
+        <script src="plotly-2.19.1.min.js"></script>
+        <script>
+            function start() {
+                fetch('/api/start', {
+                    method: 'POST'
+                }).then(res => {
+                    if (res.status == 200) {
+                        alert('Data collection started!');
+                    } else {
+                        alert('Encountered an error.');
+                        console.log(res);
+                    }
+                });
+            }
+
+            function stop() {
+                fetch('/api/stop', {
+                    method: 'POST'
+                }).then(res => {
+                    if (res.status == 200) {
+                        alert('Data collection stopped!');
+                    } else {
+                        alert('Encountered an error.');
+                        console.log(res);
+                    }
+                });
+            }
+        </script>
     </head>
-    
     <body>
-        <header> 
-            <h1>Multi-Sensor Platform</h1>
-            <nav>
-                <ul>
-                    <li><a href="dashboard.html">Dashboard</a></li>
-                    <li><a href="/">About</a></li>
-                </ul>
-            </nav>
-        </header>
+        <div>
+            <form id="create_experiment">
+                <p>
+                    <label for="name">Name</label>
+                    <input id="name" name="name" type="text" required>
+                </p>
+                <p>
+                    <label for="date">Date</label>
+                    <input type="text" id="date" name="date" required>
+                </p>
+                <p>
+                    <label for="cpa">CPA</label>
+                    <input type="text" id="cpa" name="cpa" required>
+                </p>
+                <p>
+                    <label for="vna1">VNA1</label>
+                    <input type="text" id="vna1" name="vna1">
+                </p>
+                <p>
+                    <label for="vna2">VNA2</label>
+                    <input type="text" id="vna2" name="vna2">
+                </p>
+                <input type="submit" value="Submit">
+            </form>
+            
+            
+        </div>
+        <div>
+            <button id="startup">Start Logging</button>
+            <button id="stop">Stop Logging</button>
+        </div>
+        <div id="temp_plot"></div>
+        <script>
+            var formExp = document.getElementById("create_experiment");
+            formExp.addEventListener("submit", ExpFrmHandler);
 
-        <p>Hello users, this is where we will give information about this platform once we have completed the design.</p>
+            document.getElementById("startup").addEventListener("click", start);
+            document.getElementById("stop").addEventListener("click", stop);
 
+            var tempPlot = Plotly.newPlot("temp_plot", {
+                "data": [{
+                    "x": [],
+                    "y": [],
+                    "name": "Top",
+                }, {
+                    "x": [],
+                    "y": [],
+                    "name": "Bottom",
+                }],
+                "layout": {
+                    "width": 600,
+                    "height": 400,
+                    "title": "Temperature"},
+                "type": "line"
+            });
+
+            function ExpFrmHandler(event){
+                event.preventDefault();
+                // capture the form data
+                const formData = new FormData(event.target);
+                console.log(formData.entries());
+                // convert the form data to JSON format
+                const jsonObj = Object.fromEntries(formData.entries());
+                console.log(jsonObj);
+                const jsonData = JSON.stringify(jsonObj);
+
+                fetch('/api/create_experiment', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        "length": jsonData.length.toString()
+                    },
+                    method: "POST",
+                    body: jsonData
+                }).then(function(res){
+                    // console.log(res.body);
+                    // expSelected = true;
+                })
+                .catch(function(res){ 
+                    // console.log(res);
+                    console.log("Failed to create experiment");
+                });
+            }
+
+            // function startStream(){
+            //     if(!expSelected){
+            //         console.alert("No experiment selected");
+            //     }
+            //     else{
+            //         start();
+            //         console.log("startStream");
+            //         displayData();
+            //     }
+            // }
+            
+            function displayData(){
+                var evtSource = new EventSource("api/stream_data");
+                evtSource.addEventListener('test', (event) => {
+                    const data = JSON.parse(event.data);
+                    
+                    // Create a Date object using the timestamp.
+                    const t = new Date(data.time * 1000);
+
+                    Plotly.extendTraces('temp_plot', {x: [[t]], y: [[(data.temp1)/2]]}, [0]);
+                    Plotly.extendTraces('temp_plot', {x: [[t]], y: [[data.temp2]]}, [1]);
+                });
+            }
+
+            displayData();
+            
+        </script>
     </body>
 </html>

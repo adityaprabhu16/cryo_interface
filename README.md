@@ -22,3 +22,5 @@ Install required Python packages:
 `python main.py`
 
 Note: The application has been tested using Python 3.9. Python 3.5 or newer is required.
+
+Access the GUI by going to `localhost:4951` in your web browser.
