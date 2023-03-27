@@ -12,6 +12,8 @@
                         alert('Encountered an error.');
                         console.log(res);
                     }
+                }).catch(err => {
+                    console.log(err);
                 });
             }
 
@@ -25,10 +27,13 @@
                         alert('Encountered an error.');
                         console.log(res);
                     }
+                }).catch(err => {
+                    console.log(err);
                 });
             }
 
             function connect() {
+                // TODO: allow the user to actually select the port
                 const json = JSON.stringify("COM3");
                 fetch('/api/connect', {
                     headers: {
@@ -38,12 +43,10 @@
                     },
                     method: "POST",
                     body: json
-                }).then(function(res){
+                }).then(res => {
                     console.log(res.body);
-                    // expSelected = true;
                 })
-                .catch(function(res){ 
-                    // console.log(res);
+                .catch(err => { 
                     console.log("Failed connect to USB device.");
                 });
             }
@@ -87,12 +90,6 @@
             input[type=submit]:hover {
             background-color: #45a049;
             }
-
-            /* div {
-            border-radius: 5px;
-            background-color: #f2f2f2;
-            padding: 20px;
-            } */
         </style>
     </head>
     <body>
@@ -110,14 +107,14 @@
                     <label for="cpa">CPA</label>
                     <input type="text" id="cpa" name="cpa" required>
                 </p>
-                <p>
+                <!-- <p>
                     <label for="vna1">VNA1</label>
                     <input type="text" id="vna1" name="vna1">
                 </p>
                 <p>
                     <label for="vna2">VNA2</label>
                     <input type="text" id="vna2" name="vna2">
-                </p>
+                </p> -->
                 <input type="submit" value="Create Experiment" class="button">
             </form>
             
@@ -175,36 +172,23 @@
                     },
                     method: "POST",
                     body: jsonData
-                }).then(function(res){
-                    // console.log(res.body);
-                    // expSelected = true;
+                }).then(res => {
+                    // do nothing
                 })
-                .catch(function(res){ 
-                    // console.log(res);
+                .catch(err => { 
                     console.log("Failed to create experiment");
                 });
             }
-
-            // function startStream(){
-            //     if(!expSelected){
-            //         console.alert("No experiment selected");
-            //     }
-            //     else{
-            //         start();
-            //         console.log("startStream");
-            //         displayData();
-            //     }
-            // }
             
             function displayData(){
                 var evtSource = new EventSource("api/stream_data");
-                evtSource.addEventListener('test', (event) => {
+                evtSource.addEventListener('temperature', (event) => {
                     const data = JSON.parse(event.data);
                     
                     // Create a Date object using the timestamp.
                     const t = new Date(data.time * 1000);
 
-                    Plotly.extendTraces('temp_plot', {x: [[t]], y: [[(data.temp1)/2]]}, [0]);
+                    Plotly.extendTraces('temp_plot', {x: [[t]], y: [[data.temp1]]}, [0]);
                     Plotly.extendTraces('temp_plot', {x: [[t]], y: [[data.temp2]]}, [1]);
                 });
             }

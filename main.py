@@ -147,7 +147,7 @@ def build_response_handler(app_thread: AppThread):
             try:
                 while True:
                     data: Dict = queue.get()
-                    s = 'event: test\ndata: ' + json.dumps(data) + '\n\n'
+                    s = 'event: temperature\ndata: ' + json.dumps(data) + '\n\n'
                     self.wfile.write(s.encode('utf-8'))
             except Exception:
                 app_thread.queue_pool.remove(queue)
