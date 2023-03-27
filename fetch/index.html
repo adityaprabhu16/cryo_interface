@@ -43,11 +43,14 @@
                     },
                     method: "POST",
                     body: json
-                }).then(res => {
-                    console.log(res.body);
+                })
+                .then(res => {
+                    if (res.status == 200) {
+                        alert("Connection successful.")
+                    }
                 })
                 .catch(err => { 
-                    console.log("Failed connect to USB device.");
+                    console.log("Failed to connect to USB device.");
                 });
             }
         </script>
@@ -90,10 +93,14 @@
             input[type=submit]:hover {
             background-color: #45a049;
             }
+
+            .tabcontent {
+            display: none;
+            }
         </style>
     </head>
     <body>
-        <div>
+        <div id="new_experiment" class="tabcontent">
             <form id="create_experiment">
                 <p>
                     <label for="name">Name</label>
@@ -120,16 +127,26 @@
             
             
         </div>
-        <div>
-            <button id="startup" class="button">Start Logging</button>
-            <button id="stop" class="button">Stop Logging</button>
+        <div id="dashboard" class="tabcontent">
+            <!-- <form id="create_experiment">
+                <p>
+                    <label for="period">Period</label>
+                    <input id="perid" name="period" type="text" required>
+                </p>
+                <input type="submit" value="Update Config" class="button">
+            </form> -->
+            <div>
+                <button id="startup" class="button">Start Logging</button>
+                <button id="stop" class="button">Stop Logging</button>
+            </div>
+            <br>
+            <div>
+                <button id="connect" class="button">Connect</button>
+            </div>
+            <div id="temp_plot"></div>
         </div>
-        <br>
-        <div>
-            <button id="connect" class="button">Connect</button>
-        </div>
-        <div id="temp_plot"></div>
         <script>
+            // var experiment_selected = false;
             var formExp = document.getElementById("create_experiment");
             formExp.addEventListener("submit", ExpFrmHandler);
 
@@ -154,6 +171,24 @@
                 "type": "line"
             });
 
+            function selectScreen() {
+                fetch('/api/experiment_selected')
+                .then(res => res.json())
+                .then(selected => {
+                    if (selected) {
+                        var el = document.getElementById("new_experiment");
+                        el.style.display = "none";
+                        el = document.getElementById("dashboard");
+                        el.style.display = "block";
+                    } else {
+                        var el = document.getElementById("new_experiment");
+                        el.style.display = "block";
+                        el = document.getElementById("dashboard");
+                        el.style.display = "none";
+                    }
+                });
+            }
+
             function ExpFrmHandler(event){
                 event.preventDefault();
                 // capture the form data
@@ -165,19 +200,20 @@
                 const jsonData = JSON.stringify(jsonObj);
 
                 fetch('/api/create_experiment', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        "length": jsonData.length.toString()
-                    },
-                    method: "POST",
-                    body: jsonData
-                }).then(res => {
-                    // do nothing
-                })
-                .catch(err => { 
-                    console.log("Failed to create experiment");
-                });
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            "length": jsonData.length.toString()
+                        },
+                        method: "POST",
+                        body: jsonData
+                    })
+                    .then(res => {
+                        selectScreen();
+                    })
+                    .catch(err => { 
+                        console.log("Failed to create experiment");
+                    });
             }
             
             function displayData(){
@@ -194,6 +230,8 @@
             }
 
             displayData();
+
+            selectScreen();
             
         </script>
     </body>

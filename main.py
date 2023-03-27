@@ -43,6 +43,8 @@ def build_response_handler(app_thread: AppThread):
                 self.send_json_response(app_thread.running)
             elif parsed.path == '/api/previous_experiments':
                 self.send_json_response(find_previous_experiments())
+            elif parsed.path == '/api/experiment_selected':
+                self.send_json_response(app_thread.experiment_selected)
             else:
                 self.send_response_only(HTTPStatus.NOT_FOUND)
                 self.end_headers()
