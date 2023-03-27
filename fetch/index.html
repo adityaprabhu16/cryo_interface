@@ -141,8 +141,13 @@
             </div>
             <br>
             <div>
-                <button id="connect" class="button">Connect</button>
+                <button id="connect" class="button">Connect USB</button>
             </div>
+            <form id="vna_ip_form">
+                <label for="vna_ip">VNA IP</label>
+                <input id="vna_ip" name="vna_ip" type="text" required>
+                <input type="submit" value="Connect VNA" class="button">
+            </form>
             <div id="temp_plot"></div>
         </div>
         <script>
@@ -153,6 +158,9 @@
             document.getElementById("startup").addEventListener("click", start);
             document.getElementById("stop").addEventListener("click", stop);
             document.getElementById("connect").addEventListener("click", connect);
+
+            var vna_form = document.getElementById("vna_ip_form");
+            vna_form.addEventListener("submit", vnaIPEventHandler);
 
             var tempPlot = Plotly.newPlot("temp_plot", {
                 "data": [{
@@ -213,6 +221,37 @@
                     })
                     .catch(err => { 
                         console.log("Failed to create experiment");
+                    });
+            }
+
+            function vnaIPEventHandler(event){
+                event.preventDefault();
+                // capture the form data
+                const formData = new FormData(event.target);
+                console.log(formData.entries());
+                // convert the form data to JSON format
+                const jsonObj = Object.fromEntries(formData.entries());
+                console.log(jsonObj);
+                const jsonData = JSON.stringify(jsonObj);
+
+                fetch('/api/connect_vna', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            "length": jsonData.length.toString()
+                        },
+                        method: "POST",
+                        body: jsonData
+                    })
+                    .then(res => {
+                        if (res.status == 200) {
+                            alert("Connection successful.");
+                        } else {
+                            console.log("Failed to connect to VNA.");
+                        }
+                    })
+                    .catch(err => { 
+                        console.log("Failed to connect to VNA.");
                     });
             }
             
