@@ -27,7 +27,73 @@
                     }
                 });
             }
+
+            function connect() {
+                const json = JSON.stringify("COM3");
+                fetch('/api/connect', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        "length": json.length.toString()
+                    },
+                    method: "POST",
+                    body: json
+                }).then(function(res){
+                    console.log(res.body);
+                    // expSelected = true;
+                })
+                .catch(function(res){ 
+                    // console.log(res);
+                    console.log("Failed connect to USB device.");
+                });
+            }
         </script>
+        <style>
+            html {
+                font-family: Arial;
+            }
+            .button {
+                background-color: #008CBA; /* Blue */
+                border: none;
+                color: white;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+            }
+
+            input[type=text], select {
+            width: 25%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            }
+
+            input[type=submit] {
+            width: 25%;
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            }
+
+            input[type=submit]:hover {
+            background-color: #45a049;
+            }
+
+            /* div {
+            border-radius: 5px;
+            background-color: #f2f2f2;
+            padding: 20px;
+            } */
+        </style>
     </head>
     <body>
         <div>
@@ -52,14 +118,18 @@
                     <label for="vna2">VNA2</label>
                     <input type="text" id="vna2" name="vna2">
                 </p>
-                <input type="submit" value="Submit">
+                <input type="submit" value="Create Experiment" class="button">
             </form>
             
             
         </div>
         <div>
-            <button id="startup">Start Logging</button>
-            <button id="stop">Stop Logging</button>
+            <button id="startup" class="button">Start Logging</button>
+            <button id="stop" class="button">Stop Logging</button>
+        </div>
+        <br>
+        <div>
+            <button id="connect" class="button">Connect</button>
         </div>
         <div id="temp_plot"></div>
         <script>
@@ -68,6 +138,7 @@
 
             document.getElementById("startup").addEventListener("click", start);
             document.getElementById("stop").addEventListener("click", stop);
+            document.getElementById("connect").addEventListener("click", connect);
 
             var tempPlot = Plotly.newPlot("temp_plot", {
                 "data": [{

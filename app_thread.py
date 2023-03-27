@@ -27,11 +27,11 @@ class AppThread(Thread):
 
     def run(self):
 
-        port = 'COM3'
-        baudrate = 9600  # Set this to what it will actually be
-        timeout = 5
+        # port = 'COM3'
+        # baudrate = 9600  # Set this to what it will actually be
+        # timeout = 5
 
-        self.con = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
+        # self.con = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
 
         # self.con.write('*IDN?\n'.encode('utf-8'))
         # self.con.flush()
@@ -46,33 +46,40 @@ class AppThread(Thread):
                     while self.running and not self.killed:
 
                         try:
-                            # Request temperature from ESP32
-                            self.con.write('GET TEMP\n'.encode('utf-8'))
-                            self.con.flush()
+                            if self.con:
+                                # Request temperature from ESP32
+                                self.con.write('GET TEMP\n'.encode('utf-8'))
+                                self.con.flush()
 
-                            data = self.con.readline().decode('utf-8').rstrip()
-                            t = time.time()
-                            temp1, temp2 = [float(x) for x in data.split(',')]
+                                data = self.con.readline().decode('utf-8').rstrip()
+                                t = time.time()
+                                temp1, temp2 = [float(x) for x in data.split(',')]
 
-                            data = {
-                                'time': t,
-                                'temp1': temp1,
-                                'temp2': temp2,
-                            }
+                                data = {
+                                    'time': t,
+                                    'temp1': temp1,
+                                    'temp2': temp2,
+                                }
 
-                            # Store data points in memory.
-                            self.data.append(data)
-                            
-                            # Write to the CSV file.
-                            wf.write(f'{t},{temp1},{temp2}\n')
+                                # Store data points in memory.
+                                self.data.append(data)
+                                
+                                # Write to the CSV file.
+                                wf.write(f'{t},{temp1},{temp2}\n')
 
-                            # Send data to every queue in the pool.
-                            for queue in self.queue_pool:
-                                queue.put(data)
+                                # Send data to every queue in the pool.
+                                for queue in self.queue_pool:
+                                    queue.put(data)
 
                             # Sleep until it's time to collect the next data point.
                             time.sleep(self.config.period)
-                        
+                        except serial.serialutil.SerialException:
+                            logging.exception('Encountered an error while communicating with the ESP32. Closing connection.')
+                            try:
+                                self.con.close()
+                            except:
+                                logging.exception('Error closing connection.')
+                            self.con = None
                         except:
                             logging.exception('Exception encountered in app thread.')
                 

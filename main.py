@@ -5,6 +5,7 @@ import json
 import logging
 from metadata import Metadata
 import os
+import serial
 from typing import Dict
 from urllib.parse import urlparse
 
@@ -83,6 +84,7 @@ def build_response_handler(app_thread: AppThread):
                     self.send_response_only(HTTPStatus.OK)
                     self.end_headers()
                 else:
+                    logging.warning('Cannot start data collection before starting an experiment.')
                     self.send_response_only(HTTPStatus.BAD_REQUEST)
                     self.end_headers()
             elif parsed.path == '/api/stop':
@@ -97,6 +99,28 @@ def build_response_handler(app_thread: AppThread):
                 # Save this as our dir to use
                 # return metadata
                 self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
+                self.end_headers()
+            elif parsed.path == '/api/connect':
+                length = int(self.headers.get('length'))
+                port = json.loads(self.rfile.read(length).decode('utf-8'))
+                # print(length, port)
+                if app_thread.con:
+                    try:
+                        logging.info('Closing existing serial connection.')
+                        app_thread.con.close()
+                    except:
+                        logging.exception('An error occured while closing the existing connection.')
+                available = find_available_devices()
+                if port not in available:
+                    logging.warning(f"The requested port '{port}' is not available.")
+                    self.send_response_only(HTTPStatus.BAD_REQUEST)
+                    self.end_headers()
+                    return
+                baudrate = 9600
+                timeout = 5
+                app_thread.con = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
+                logging.info(f'Connected to USB device at {port}')
+                self.send_response_only(HTTPStatus.OK)
                 self.end_headers()
             else:
                 self.send_response_only(HTTPStatus.NOT_FOUND)
