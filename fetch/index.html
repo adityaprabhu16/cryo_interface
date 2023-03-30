@@ -114,6 +114,22 @@
                     <label for="cpa">CPA</label>
                     <input type="text" id="cpa" name="cpa" required>
                 </p>
+                <p>
+                    <label for="TopVNA">Select Top VNA</label>
+                    <input type="text" name="TopVNA" id="TopVNA">
+                </p>
+                <p>
+                    <label for="BotVNA">Select Bottom VNA</label>
+                    <input type="text" name="BotVNA" id="BotVNA">
+                </p>
+                <p>
+                    <label for="temp1">Label Temp sensor 1</label>
+                    <input type="text" name="temp1" id="temp1">
+                </p>
+                <p>
+                    <label for="temp2">Label Temp sensor 2</label>
+                    <input type="text" name="temp2" id="temp2">
+                </p>
                 <!-- <p>
                     <label for="vna1">VNA1</label>
                     <input type="text" id="vna1" name="vna1">
@@ -143,7 +159,17 @@
             <div>
                 <button id="connect" class="button">Connect</button>
             </div>
+            <br>
+            <div>Configuration:
+                <p>
+                    <label for="datarate">Sample time (seconds)</label>
+                    <input type="number" id="datarate" name="datarate">
+                    <button id="cfgRate" class="button">Apply</button>
+                </p>
+                
+            </div>
             <div id="temp_plot"></div>
+            <div id="vna1_plot"></div>
         </div>
         <script>
             // var experiment_selected = false;
@@ -153,6 +179,7 @@
             document.getElementById("startup").addEventListener("click", start);
             document.getElementById("stop").addEventListener("click", stop);
             document.getElementById("connect").addEventListener("click", connect);
+            document.getElementById("cfgRate").addEventListener("click", cfgRate);
 
             var tempPlot = Plotly.newPlot("temp_plot", {
                 "data": [{
@@ -170,6 +197,21 @@
                     "title": "Temperature"},
                 "type": "line"
             });
+
+            // var vna1Plot = Plotly.newPlot("vna1_plot", {
+            //     "data": [{
+            //         "x": [],
+            //         "y": [],
+            //         "name": "S-param",
+            //     }],
+            //     "layout": {
+            //         "width": 600,
+            //         "height": 400,
+            //         "title": "Frequency"},
+            //     "type": "line"
+            // });
+
+
 
             function selectScreen() {
                 fetch('/api/experiment_selected')
@@ -227,6 +269,31 @@
                     Plotly.extendTraces('temp_plot', {x: [[t]], y: [[data.temp1]]}, [0]);
                     Plotly.extendTraces('temp_plot', {x: [[t]], y: [[data.temp2]]}, [1]);
                 });
+            }
+
+            function cfgRate(){
+                var cfgJSON = {
+                    "datarate": document.getElementById("datarate").innerHTML
+                }
+                console.log(cfgJSON);
+                // var speed = document.getElementById("datarate").innerHTML;
+                fetch('/api/config', {
+                    method:'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'length': JSON.stringify(cfgJSON).length.toString(),
+                    },
+                    body: JSON.stringify(cfgJSON),
+                })
+                    .then(res =>{
+                        if(res.status == 200){
+                            alert("data rate configured successfully");
+                        }
+                    })
+                    .catch(err =>{
+                        alert("Failed to congifure data rate");
+                    })
             }
 
             displayData();
