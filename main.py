@@ -125,10 +125,10 @@ def build_response_handler(app_thread: AppThread):
                 logging.info(f'Connected to USB device at {port}')
                 self.send_response_only(HTTPStatus.OK)
                 self.end_headers()
-            elif parsed.path == '/api/connect_vna':
+            elif parsed.path == '/api/connect_vna1':
                 length = int(self.headers.get('length'))
-                port = json.loads(self.rfile.read(length).decode('utf-8'))
-                # print(length, port)
+                host = json.loads(self.rfile.read(length).decode('utf-8'))
+                host = '169.254.39.210' # TODO: this is just for testing
                 if app_thread.vna_con:
                     try:
                         logging.info('Closing existing socket connection.')
@@ -142,7 +142,36 @@ def build_response_handler(app_thread: AppThread):
 
                 try:
                     app_thread.vna_con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    host = '169.254.146.205' # TODO: read port from request
+                    PORT = 5025
+                    app_thread.vna_con.connect((host, PORT))
+                    app_thread.vna_con.send(build_cmd('*IDN?'))
+                    recv = app_thread.vna_con.recv(2048)
+                    print(recv.decode('utf-8'))
+                except:
+                    logging.exception('Error occured while connecting to VNA.')
+                    app_thread.vna_con = None
+                    self.send_response_only(HTTPStatus.BAD_REQUEST)
+                    self.end_headers()
+                    return
+                self.send_response_only(HTTPStatus.OK)
+                self.end_headers()
+            elif parsed.path == '/api/connect_vna2':
+                length = int(self.headers.get('length'))
+                host = json.loads(self.rfile.read(length).decode('utf-8'))
+                host = '169.254.39.210' # TODO: this is just for testing
+                if app_thread.vna_con:
+                    try:
+                        logging.info('Closing existing socket connection.')
+                        app_thread.vna_con.close()
+                    except:
+                        logging.exception('Error closing socket connection.')
+
+                def build_cmd(cmd: str) -> bytes:
+                    cmd = cmd + '\n'
+                    return bytes(cmd, 'utf-8')
+
+                try:
+                    app_thread.vna_con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     PORT = 5025
                     app_thread.vna_con.connect((host, PORT))
                     app_thread.vna_con.send(build_cmd('*IDN?'))
