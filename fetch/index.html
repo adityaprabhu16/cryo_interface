@@ -53,6 +53,52 @@
                     console.log("Failed to connect to USB device.");
                 });
             }
+
+            function connectVNA1() {
+                const port = document.getElementById("vna1IP").value;
+                const json = JSON.stringify(port);
+                console.log(json)
+                fetch('/api/connect_vna1', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        "length": json.length.toString()
+                    },
+                    method: "POST",
+                    body: json
+                })
+                .then(res => {
+                    if (res.status == 200) {
+                        alert("Connection successful.")
+                    }
+                })
+                .catch(err => { 
+                    console.log("Failed to connect to VNA.");
+                });
+            }
+
+            function connectVNA2() {
+                const port = document.getElementById("vna2IP").value;
+                const json = JSON.stringify(port);
+                console.log(json)
+                fetch('/api/connect_vna2', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        "length": json.length.toString()
+                    },
+                    method: "POST",
+                    body: json
+                })
+                .then(res => {
+                    if (res.status == 200) {
+                        alert("Connection successful.")
+                    }
+                })
+                .catch(err => { 
+                    console.log("Failed to connect to VNA.");
+                });
+            }
         </script>
         <style>
             html {
@@ -207,6 +253,8 @@
             document.getElementById("startup").addEventListener("click", start);
             document.getElementById("stop").addEventListener("click", stop);
             document.getElementById("connect").addEventListener("click", connect);
+            document.getElementById("connectVNA1").addEventListener("click", connectVNA1);
+            document.getElementById("connectVNA2").addEventListener("click", connectVNA2);
             document.getElementById("cfgRate").addEventListener("click", cfgRate);
 
             document.getElementById('temp1Checkbox').onchange = function() {
@@ -338,6 +386,39 @@
                         console.log("Failed to create experiment");
                     });
             }
+
+            function vna1IPEventHandler(event){
+                event.preventDefault();
+                // capture the form data
+                const formData = new FormData(event.target);
+                console.log(formData.entries());
+                // convert the form data to JSON format
+                const jsonObj = Object.fromEntries(formData.entries());
+                console.log(jsonObj);
+                const jsonData = JSON.stringify(jsonObj);
+
+                fetch('/api/connect_vna1', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            "length": jsonData.length.toString()
+                        },
+                        method: "POST",
+                        body: jsonData
+                    })
+                    .then(res => {
+                        if (res.status == 200) {
+                            alert("Connection successful.");
+                        } else {
+                            console.log("Failed to connect to VNA.");
+                        }
+                    })
+                    .catch(err => { 
+                        console.log("Failed to connect to VNA.");
+                    });
+            }
+
+            
             
             function displayData(){
                 var evtSource = new EventSource("api/stream_data");

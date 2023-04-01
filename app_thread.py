@@ -9,6 +9,11 @@ import time
 from config import Config
 
 
+def build_cmd(cmd: str) -> bytes:
+    cmd = cmd + '\n'
+    return bytes(cmd, 'utf-8')
+
+
 class AppThread(Thread):
 
     def __init__(self):
@@ -23,20 +28,12 @@ class AppThread(Thread):
 
         self.data = []
 
+        self.vna_con1 = None
+        self.vna_con2 = None
+
         self.killed = False
 
     def run(self):
-
-        # port = 'COM3'
-        # baudrate = 9600  # Set this to what it will actually be
-        # timeout = 5
-
-        # self.con = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
-
-        # self.con.write('*IDN?\n'.encode('utf-8'))
-        # self.con.flush()
-        # print(self.con.readline().decode('utf-8').rstrip())
-
 
         # Run forever as long as the thread has not been killed.
         while not self.killed:
@@ -70,6 +67,42 @@ class AppThread(Thread):
                                 # Send data to every queue in the pool.
                                 for queue in self.queue_pool:
                                     queue.put(data)
+                            
+                            if self.vna_con1:
+                                self.vna_con1.send(build_cmd('MMEM:DATA? "FTEST.csv"'))
+                                recv = self.vna_con1.recv(100000)
+                                text = recv.decode('utf-8')
+                                # print(text[text.index('BEGIN'):])
+
+                                try:
+                                    end_idx = text.index('END')
+                                    # print('[BEGIN]')
+                                    with open('temp.csv', 'w') as csv_wf:
+                                        for line in text[text.index('BEGIN'):text.index('END')].split('\n')[1:]:
+                                            csv_wf.write(line)
+                                    print('Done writing to CSV.')
+                                    # print('[END]')
+                                except ValueError:
+                                    # Incomplete transmission, END not found
+                                    pass
+                            
+                            if self.vna_con2:
+                                self.vna_con2.send(build_cmd('MMEM:DATA? "FTEST.csv"'))
+                                recv = self.vna_con2.recv(100000)
+                                text = recv.decode('utf-8')
+                                # print(text[text.index('BEGIN'):])
+
+                                try:
+                                    end_idx = text.index('END')
+                                    # print('[BEGIN]')
+                                    with open('temp.csv', 'w') as csv_wf:
+                                        for line in text[text.index('BEGIN'):text.index('END')].split('\n')[1:]:
+                                            csv_wf.write(line)
+                                    print('Done writing to CSV.')
+                                    # print('[END]')
+                                except ValueError:
+                                    # Incomplete transmission, END not found
+                                    pass
 
                             # Sleep until it's time to collect the next data point.
                             time.sleep(self.config.period)
@@ -102,3 +135,7 @@ class AppThread(Thread):
         self.killed = True
         if self.con:
             self.con.close()
+        if self.vna_con1:
+            self.vna_con1.close()
+        if self.vna_con2:
+            self.vna_con2.close()

@@ -6,6 +6,7 @@ import logging
 from metadata import Metadata
 import os
 import serial
+import socket
 from typing import Dict
 from urllib.parse import urlparse
 
@@ -120,6 +121,66 @@ def build_response_handler(app_thread: AppThread):
                 timeout = 5
                 app_thread.con = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
                 logging.info(f'Connected to USB device at {port}')
+                self.send_response_only(HTTPStatus.OK)
+                self.end_headers()
+            elif parsed.path == '/api/connect_vna1':
+                length = int(self.headers.get('length'))
+                host = json.loads(self.rfile.read(length).decode('utf-8'))
+                # host = '169.254.39.210' # TODO: this is just for testing
+                if app_thread.vna_con1:
+                    try:
+                        logging.info('Closing existing socket connection.')
+                        app_thread.vna_con1.close()
+                    except:
+                        logging.exception('Error closing socket connection.')
+
+                def build_cmd(cmd: str) -> bytes:
+                    cmd = cmd + '\n'
+                    return bytes(cmd, 'utf-8')
+
+                try:
+                    app_thread.vna_con1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    PORT = 5025
+                    app_thread.vna_con1.connect((host, PORT))
+                    app_thread.vna_con1.send(build_cmd('*IDN?'))
+                    recv = app_thread.vna_con.recv(2048)
+                    print(recv.decode('utf-8'))
+                except:
+                    logging.exception('Error occured while connecting to VNA.')
+                    app_thread.vna_con1 = None
+                    self.send_response_only(HTTPStatus.BAD_REQUEST)
+                    self.end_headers()
+                    return
+                self.send_response_only(HTTPStatus.OK)
+                self.end_headers()
+            elif parsed.path == '/api/connect_vna2':
+                length = int(self.headers.get('length'))
+                host = json.loads(self.rfile.read(length).decode('utf-8'))
+                # host = '169.254.39.210' # TODO: this is just for testing
+                if app_thread.vna_con2:
+                    try:
+                        logging.info('Closing existing socket connection.')
+                        app_thread.vna_con2.close()
+                    except:
+                        logging.exception('Error closing socket connection.')
+
+                def build_cmd(cmd: str) -> bytes:
+                    cmd = cmd + '\n'
+                    return bytes(cmd, 'utf-8')
+
+                try:
+                    app_thread.vna_con2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    PORT = 5025
+                    app_thread.vna_con2.connect((host, PORT))
+                    app_thread.vna_con2.send(build_cmd('*IDN?'))
+                    recv = app_thread.vna_con2.recv(2048)
+                    print(recv.decode('utf-8'))
+                except:
+                    logging.exception('Error occured while connecting to VNA.')
+                    app_thread.vna_con2 = None
+                    self.send_response_only(HTTPStatus.BAD_REQUEST)
+                    self.end_headers()
+                    return
                 self.send_response_only(HTTPStatus.OK)
                 self.end_headers()
             else:
