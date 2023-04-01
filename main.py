@@ -51,31 +51,29 @@ def build_response_handler(app_thread: AppThread):
         
         def do_POST(self):
             parsed = urlparse(self.path)
-            if parsed.path == '/api/metadata':
+            if parsed.path == '/api/config':
                 if self.headers.get('content-type') != 'application/json':
                     self.send_response_only(HTTPStatus.BAD_REQUEST)
                     self.end_headers()
                     return
                 length = int(self.headers.get('length'))
                 content = self.rfile.read(length)
-                # TODO
-                # metadata = json.loads(content)
-                # self.save_metadata()
-                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
-                self.end_headers()
-                # TODO: return updated metadata
-            elif parsed.path == '/api/config':
-                if self.headers.get('content-type') != 'application/json':
+                config = json.loads(content)
+
+                period = config.get('period')
+
+                if type(period) != int:
                     self.send_response_only(HTTPStatus.BAD_REQUEST)
                     self.end_headers()
                     return
-                length = int(self.headers.get('length'))
-                content = self.rfile.read(length)
-                # TODO
-                # config = json.loads(content)
-                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
-                self.end_headers()
-                # TODO: return the updated config
+
+                app_thread.config.period = period
+
+                response = json.dumps({
+                    "period": app_thread.config.period
+                })
+
+                self.send_json_response(response)
             elif parsed.path == '/api/generate_combined_csv':
                 # TODO: implement this last (once we have some data to work with)
                 self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
@@ -174,13 +172,18 @@ def build_response_handler(app_thread: AppThread):
             metadata = json.loads(content)
 
             # Name, cpa, and date must be present for the operation to be sucessful.
-            if 'name' not in metadata or 'cpa' not in metadata or 'date' not in metadata:
+            # if 'name' not in metadata or 'cpa' not in metadata or 'date' not in metadata:
+            #     self.send_response_only(HTTPStatus.BAD_REQUEST)
+            #     self.end_headers()
+
+            name = metadata.get('name')
+            cpa = metadata.get('cpa')
+            date = metadata.get('date')
+
+            if name is None or cpa is None or date is None:
                 self.send_response_only(HTTPStatus.BAD_REQUEST)
                 self.end_headers()
-
-            name = metadata['name']
-            cpa = metadata['cpa']
-            date = metadata['date']
+                return
 
             directory = f'{name}_{cpa}_{date}'
 
@@ -200,7 +203,13 @@ def build_response_handler(app_thread: AppThread):
                 self.end_headers()
                 return
             
-            app_thread.metadata = Metadata(name=name, cpa=cpa, date=date)
+            app_thread.metadata = Metadata(name=name,
+                                           cpa=cpa,
+                                           date=date,
+                                           temp1=metadata.get('temp1'),
+                                           temp2=metadata.get('temp2'),
+                                           vna1=metadata.get('vna1'),
+                                           vna2=metadata.get('vna2'))
             app_thread.dir = directory
             app_thread.experiment_selected = True
 

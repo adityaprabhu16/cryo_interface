@@ -33,8 +33,8 @@
             }
 
             function connect() {
-                // TODO: allow the user to actually select the port
-                const json = JSON.stringify("COM3");
+                const port = document.getElementById("port").value;
+                const json = JSON.stringify(port);
                 fetch('/api/connect', {
                     headers: {
                         'Accept': 'application/json',
@@ -107,71 +107,99 @@
                     <input id="name" name="name" type="text" required>
                 </p>
                 <p>
-                    <label for="date">Date</label>
-                    <input type="text" id="date" name="date" required>
-                </p>
-                <p>
                     <label for="cpa">CPA</label>
                     <input type="text" id="cpa" name="cpa" required>
                 </p>
                 <p>
-                    <label for="TopVNA">Select Top VNA</label>
-                    <input type="text" name="TopVNA" id="TopVNA">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" name="date" required>
                 </p>
                 <p>
-                    <label for="BotVNA">Select Bottom VNA</label>
-                    <input type="text" name="BotVNA" id="BotVNA">
+                    <label for="temp1">Temp Sensor 1</label>
+                    <input type="checkbox" id="temp1Checkbox" />
+                    <input type="text" name="temp1" id="temp1" disabled />
                 </p>
                 <p>
-                    <label for="temp1">Label Temp sensor 1</label>
-                    <input type="text" name="temp1" id="temp1">
+                    <label for="temp2">Temp Sensor 2</label>
+                    <input type="checkbox" id="temp2Checkbox" />
+                    <input type="text" name="temp2" id="temp2" disabled />
                 </p>
                 <p>
-                    <label for="temp2">Label Temp sensor 2</label>
-                    <input type="text" name="temp2" id="temp2">
-                </p>
-                <!-- <p>
-                    <label for="vna1">VNA1</label>
-                    <input type="text" id="vna1" name="vna1">
+                    <label for="vna1">VNA 1</label>
+                    <input type="checkbox" id="vna1Checkbox" />
+                    <input type="text" name="vna1" id="vna1" disabled />
                 </p>
                 <p>
-                    <label for="vna2">VNA2</label>
-                    <input type="text" id="vna2" name="vna2">
-                </p> -->
+                    <label for="vna2">VNA 2</label>
+                    <input type="checkbox" id="vna2Checkbox" />
+                    <input type="text" name="vna2" id="vna2" disabled />
+                </p>
                 <input type="submit" value="Create Experiment" class="button">
             </form>
             
             
         </div>
         <div id="dashboard" class="tabcontent">
-            <!-- <form id="create_experiment">
-                <p>
-                    <label for="period">Period</label>
-                    <input id="perid" name="period" type="text" required>
-                </p>
-                <input type="submit" value="Update Config" class="button">
-            </form> -->
+            <div>
+                <b>Metadata</b>
+                <br><br>
+                <b>Name: </b><span id="metadata-name"></span>
+                <br>
+                <b>CPA: </b><span id="metadata-cpa"></span>
+                <br>
+                <b>Date: </b><span id="metadata-date"></span>
+                <br>
+                <b>Temp1: </b><span id="metadata-temp1"></span>
+                <br>
+                <b>Temp2: </b><span id="metadata-temp2"></span>
+                <br>
+                <b>VNA 1: </b><span id="metadata-vna1"></span>
+                <br>
+                <b>VNA 2: </b><span id="metadata-vna2"></span>
+            </div>
+            <br><br>
+            <div>
+                <b>Temperature Sensor</b>
+                <br><br>
+                <select name="port" id="port">
+                    <!-- <option value="COM3">COM3</option> -->
+                </select>
+                <button id="refresh" class="button">Refresh</button>
+                <button id="connect" class="button">Connect</button>
+            </div>
+            <br><br>
+            <div>
+                <b>VNA</b>
+                <br><br>
+                <label>VNA 1 IP: </label>
+                <input type="text" id="vna1IP" name="vna1IP">
+                <button id="connectVNA1" class="button">Connect</button>
+                <br><br>
+                <label>VNA 2 IP: </label>
+                <input type="text" id="vna2IP" name="vna2IP">
+                <button id="connectVNA2" class="button">Connect</button>
+            </div>
+            <br><br>
+            <div>
+                <b>Configuration</b>
+                <br><br>
+                <label for="datarate">Sampling Period (sec): </label>
+                <input type="number" id="datarate" name="datarate">
+                <br><br>
+                <button id="cfgRate" class="button">Update Config</button>
+            </div>
+            <br><br>
             <div>
                 <button id="startup" class="button">Start Logging</button>
                 <button id="stop" class="button">Stop Logging</button>
             </div>
             <br>
-            <div>
-                <button id="connect" class="button">Connect</button>
-            </div>
-            <br>
-            <div>Configuration:
-                <p>
-                    <label for="datarate">Sample time (seconds)</label>
-                    <input type="number" id="datarate" name="datarate">
-                    <button id="cfgRate" class="button">Apply</button>
-                </p>
-                
-            </div>
             <div id="temp_plot"></div>
             <div id="vna1_plot"></div>
         </div>
         <script>
+            document.getElementById('date').valueAsDate = new Date();
+
             // var experiment_selected = false;
             var formExp = document.getElementById("create_experiment");
             formExp.addEventListener("submit", ExpFrmHandler);
@@ -181,15 +209,31 @@
             document.getElementById("connect").addEventListener("click", connect);
             document.getElementById("cfgRate").addEventListener("click", cfgRate);
 
+            document.getElementById('temp1Checkbox').onchange = function() {
+                document.getElementById('temp1').disabled = !this.checked;
+            };
+
+            document.getElementById('temp2Checkbox').onchange = function() {
+                document.getElementById('temp2').disabled = !this.checked;
+            };
+
+            document.getElementById('vna1Checkbox').onchange = function() {
+                document.getElementById('vna1').disabled = !this.checked;
+            };
+
+            document.getElementById('vna2Checkbox').onchange = function() {
+                document.getElementById('vna2').disabled = !this.checked;
+            };
+
             var tempPlot = Plotly.newPlot("temp_plot", {
                 "data": [{
                     "x": [],
                     "y": [],
-                    "name": "Top",
+                    "name": "Temp 1",
                 }, {
                     "x": [],
                     "y": [],
-                    "name": "Bottom",
+                    "name": "Temp 2",
                 }],
                 "layout": {
                     "width": 600,
@@ -198,22 +242,59 @@
                 "type": "line"
             });
 
-            // var vna1Plot = Plotly.newPlot("vna1_plot", {
-            //     "data": [{
-            //         "x": [],
-            //         "y": [],
-            //         "name": "S-param",
-            //     }],
-            //     "layout": {
-            //         "width": 600,
-            //         "height": 400,
-            //         "title": "Frequency"},
-            //     "type": "line"
-            // });
+            function loadMetadata() {
+                fetch('/api/metadata')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("metadata-name").textContent = data.name;
+                    document.getElementById("metadata-cpa").textContent = data.cpa;
+                    document.getElementById("metadata-date").textContent = data.date;
+                    document.getElementById("metadata-temp1").textContent = data.temp1;
+                    document.getElementById("metadata-temp2").textContent = data.temp2;
+                    document.getElementById("metadata-vna1").textContent = data.vna1;
+                    document.getElementById("metadata-vna2").textContent = data.vna2;
+                })
+                .catch(err => console.log(err));
+            }
 
+            function loadPorts() {
+                fetch('/api/devices')
+                .then(res => res.json())
+                .then(data => {
+                    const selector = document.querySelector("select");
+                    const items = selector.length;
+                    for (var i = items-1; i >= 0; i--) {
+                        selector.remove(i);
+                    }
+                    for (const x of data) {
+                        const op = new Option(x, x);
+                        selector.add(op, undefined);
+                    }
+                })
+                .catch(err => console.log(err));
+            }
 
+            function refresh() {
+                loadPorts();
+            }
+            document.getElementById("refresh").addEventListener("click", refresh);
+
+            function loadConfig() {
+                fetch('/api/config')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("datarate").value = data.period;
+                })
+                .catch(err => console.log(err));
+            }
+
+            loadMetadata();
+            loadPorts();
+            loadConfig();
 
             function selectScreen() {
+                loadMetadata();
+
                 fetch('/api/experiment_selected')
                 .then(res => res.json())
                 .then(selected => {
@@ -273,10 +354,9 @@
 
             function cfgRate(){
                 var cfgJSON = {
-                    "datarate": document.getElementById("datarate").innerHTML
+                    "period": document.getElementById("datarate").valueAsNumber,
                 }
                 console.log(cfgJSON);
-                // var speed = document.getElementById("datarate").innerHTML;
                 fetch('/api/config', {
                     method:'POST',
                     headers: {
@@ -286,14 +366,14 @@
                     },
                     body: JSON.stringify(cfgJSON),
                 })
-                    .then(res =>{
-                        if(res.status == 200){
-                            alert("data rate configured successfully");
-                        }
-                    })
-                    .catch(err =>{
-                        alert("Failed to congifure data rate");
-                    })
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data);
+                    // TODO: use values we got back to update the UI
+                })
+                .catch(err =>{
+                    alert("Failed to congifure data rate");
+                });
             }
 
             displayData();
