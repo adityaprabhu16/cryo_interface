@@ -87,6 +87,10 @@ Get a list of previous experiments.
 
 `GET /api/experiment_selected`
 
+Whether or not the user has selected an experiment.
+
+`returns:` `true` if an experiment has been selected, `false` otherwise.
+
 ### POST
 
 `POST /api/config`
@@ -117,4 +121,12 @@ Connect to the USB device with the provided port.
 
 `POST /api/connect_vna1`
 
+Connect to the VNA with the specified IP address.
+
+`send:` IP address as a string.
+
 `POST /api/connect_vna2`
+
+Connect to the VNA with the specified IP address.
+
+`send:` IP address as a string.
