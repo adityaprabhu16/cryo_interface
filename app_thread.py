@@ -90,7 +90,6 @@ class AppThread(Thread):
                                 self.vna_con2.send(build_cmd('MMEM:DATA? "FTEST.csv"'))
                                 recv = self.vna_con2.recv(100000)
                                 text = recv.decode('utf-8')
-                                # print(text[text.index('BEGIN'):])
 
                                 try:
                                     end_idx = text.index('END')
@@ -122,10 +121,21 @@ class AppThread(Thread):
                 
     
     def get_queue(self) -> queue.Queue:
+        """
+        Get a new queue for the data stream.
+        
+        :return: A queue containing all data up to this point.
+        """
+        # Create a new queue.
         q = queue.Queue()
+
+        # Add previous data to the queue.
         for item in self.data:
             q.put(item)
+        
+        # Add the queue to the queue pool.
         self.queue_pool.append(q)
+
         return q
 
     def start(self) -> None:
@@ -133,6 +143,7 @@ class AppThread(Thread):
     
     def stop(self):
         self.killed = True
+        # Close all connections.
         if self.con:
             self.con.close()
         if self.vna_con1:
