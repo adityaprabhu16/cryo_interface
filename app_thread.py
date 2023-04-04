@@ -22,7 +22,7 @@ class AppThread(Thread):
         self.con = None
         self.queue_pool = []
         self.metadata = None
-        self.config = Config(period=5.0)
+        self.config = Config(period=30.0)
         self.dir = None
         self.experiment_selected = False
 
@@ -42,14 +42,17 @@ class AppThread(Thread):
                 with open(os.path.join('experiments', self.dir, 'data.csv'), 'w+') as wf:
                     while self.running and not self.killed:
 
-                        try:
-                            if self.con:
+                        retry = False
+
+                        t = time.time()
+
+                        if self.con:
+                            try:
                                 # Request temperature from ESP32
                                 self.con.write('GET TEMP\n'.encode('utf-8'))
                                 self.con.flush()
 
                                 data = self.con.readline().decode('utf-8').rstrip()
-                                t = time.time()
                                 temp1, temp2 = [float(x) for x in data.split(',')]
 
                                 data = {
@@ -67,53 +70,69 @@ class AppThread(Thread):
                                 # Send data to every queue in the pool.
                                 for queue in self.queue_pool:
                                     queue.put(data)
-                            
-                            if self.vna_con1:
+
+                            except serial.serialutil.SerialException:
+                                logging.exception('Encountered an error while communicating with the ESP32. Closing connection.')
+                                try:
+                                    self.con.close()
+                                except:
+                                    logging.exception('Error closing connection.')
+                                self.con = None
+                            except:
+                                logging.exception('Exception encountered in app thread.')
+                        
+
+                        if self.vna_con1:
+                            try:
                                 self.vna_con1.send(build_cmd('MMEM:DATA? "FTEST.csv"'))
                                 recv = self.vna_con1.recv(100000)
                                 text = recv.decode('utf-8')
-                                # print(text[text.index('BEGIN'):])
 
                                 try:
                                     end_idx = text.index('END')
-                                    # print('[BEGIN]')
-                                    with open('temp.csv', 'w') as csv_wf:
+                                    with open(os.path.join('experiments', self.dir, f'vna1_{int(t)}.csv'), 'w') as csv_wf:
                                         for line in text[text.index('BEGIN'):text.index('END')].split('\n')[1:]:
                                             csv_wf.write(line)
                                     print('Done writing to CSV.')
-                                    # print('[END]')
                                 except ValueError:
-                                    # Incomplete transmission, END not found
+                                    logging.exception('Error.')
+                                    retry = True
                                     pass
-                            
-                            if self.vna_con2:
+                            except:
+                                logging.exception('Error')
+                                try:
+                                    self.vna_con1.close()
+                                except:
+                                    logging.exception('Error closing connection')
+                                self.vna_con1 = None
+                        
+                        if self.vna_con2:
+                            try:
                                 self.vna_con2.send(build_cmd('MMEM:DATA? "FTEST.csv"'))
                                 recv = self.vna_con2.recv(100000)
                                 text = recv.decode('utf-8')
 
                                 try:
                                     end_idx = text.index('END')
-                                    # print('[BEGIN]')
-                                    with open('temp.csv', 'w') as csv_wf:
+                                    with open(os.path.join('experiments', self.dir, f'vna2_{int(t)}.csv'), 'w') as csv_wf:
                                         for line in text[text.index('BEGIN'):text.index('END')].split('\n')[1:]:
                                             csv_wf.write(line)
                                     print('Done writing to CSV.')
-                                    # print('[END]')
                                 except ValueError:
-                                    # Incomplete transmission, END not found
+                                    logging.exception('Error.')
+                                    retry = True
                                     pass
-
+                            except:
+                                logging.exception('Error')
+                                try:
+                                    self.vna_con2.close()
+                                except:
+                                    logging.exception('Error closing connection')
+                                self.vna_con2 = None
+                        
+                        if not retry:
                             # Sleep until it's time to collect the next data point.
                             time.sleep(self.config.period)
-                        except serial.serialutil.SerialException:
-                            logging.exception('Encountered an error while communicating with the ESP32. Closing connection.')
-                            try:
-                                self.con.close()
-                            except:
-                                logging.exception('Error closing connection.')
-                            self.con = None
-                        except:
-                            logging.exception('Exception encountered in app thread.')
                 
             while not self.running and not self.killed:
                 # Sleep to avoid wasting CPU resources.

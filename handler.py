@@ -14,6 +14,14 @@ from app_thread import AppThread
 from utils import EnhancedJSONEncoder, find_available_devices, find_previous_experiments
 
 
+VNA_PORT = 5025
+
+
+def build_cmd(cmd: str) -> bytes:
+    cmd = cmd + '\n'
+    return bytes(cmd, 'utf-8')
+
+
 def build_response_handler(app_thread: AppThread):
     """
     Build the HTTP response handler class.
@@ -24,6 +32,9 @@ def build_response_handler(app_thread: AppThread):
     """
 
     class ResponseHandler(BaseHTTPRequestHandler):
+        """
+        Handles responding to HTTP requests.
+        """
 
         def do_GET(self):
             """
@@ -212,64 +223,84 @@ def build_response_handler(app_thread: AppThread):
             self.end_headers()
         
         def connect_vna1(self) -> None:
+            """
+            Connect to the VNA at the provided IP address.
+            """
+            # Get the length of the request's contents.
             length = int(self.headers.get('length'))
+
+            # Read the VNA IP address from the requests contents.
             host = json.loads(self.rfile.read(length).decode('utf-8'))
-            # host = '169.254.39.210' # TODO: this is just for testing
+
+            # Check if the connection to the VNA already exists.
             if app_thread.vna_con1:
+                # Try closing the socket connection.
                 try:
                     logging.info('Closing existing socket connection.')
                     app_thread.vna_con1.close()
                 except:
-                    logging.exception('Error closing socket connection.')
-
-            def build_cmd(cmd: str) -> bytes:
-                cmd = cmd + '\n'
-                return bytes(cmd, 'utf-8')
+                    logging.exception('Error closing socket connection.') 
 
             try:
+                # Create socket object.
                 app_thread.vna_con1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                PORT = 5025
-                app_thread.vna_con1.connect((host, PORT))
+                # Connect to that socket.
+                app_thread.vna_con1.connect((host, VNA_PORT))
+                # Send the identify command to the VNA.
                 app_thread.vna_con1.send(build_cmd('*IDN?'))
-                recv = app_thread.vna_con.recv(2048)
-                print(recv.decode('utf-8'))
+                # Read the VNA's reply.
+                recv = app_thread.vna_con1.recv(2048)
+                logging.info(f"Connected to {recv.decode('utf-8')}")
             except:
+                # Set the connection to None.
+                app_thread.vna_con1 = None
                 msg = 'Error occured while connecting to VNA.'
                 logging.exception(msg)
-                app_thread.vna_con1 = None
                 self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
                 return
+
+            # Everything was good, respond with OK.
             self.send_response_only(HTTPStatus.OK)
             self.end_headers()
         
         def connect_vna2(self) -> None:
+            """
+            Connect to the VNA at the provided IP address.
+            """
+            # Get the length of the request's contents.
             length = int(self.headers.get('length'))
+
+            # Read the VNA IP address from the requests contents.
             host = json.loads(self.rfile.read(length).decode('utf-8'))
-            # host = '169.254.39.210' # TODO: this is just for testing
+
+            # Check if the connection to the VNA already exists.
             if app_thread.vna_con2:
+                # Try closing the socket connection.
                 try:
                     logging.info('Closing existing socket connection.')
                     app_thread.vna_con2.close()
                 except:
-                    logging.exception('Error closing socket connection.')
-
-            def build_cmd(cmd: str) -> bytes:
-                cmd = cmd + '\n'
-                return bytes(cmd, 'utf-8')
+                    logging.exception('Error closing socket connection.') 
 
             try:
+                # Create socket object.
                 app_thread.vna_con2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                PORT = 5025
-                app_thread.vna_con2.connect((host, PORT))
+                # Connect to that socket.
+                app_thread.vna_con2.connect((host, VNA_PORT))
+                # Send the identify command to the VNA.
                 app_thread.vna_con2.send(build_cmd('*IDN?'))
+                # Read the VNA's reply.
                 recv = app_thread.vna_con2.recv(2048)
-                print(recv.decode('utf-8'))
+                logging.info(f"Connected to {recv.decode('utf-8')}")
             except:
-                logging.exception('Error occured while connecting to VNA.')
+                # Set the connection to None.
                 app_thread.vna_con2 = None
-                self.send_response_only(HTTPStatus.BAD_REQUEST)
-                self.end_headers()
+                msg = 'Error occured while connecting to VNA.'
+                logging.exception(msg)
+                self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
                 return
+
+            # Everything was good, respond with OK.
             self.send_response_only(HTTPStatus.OK)
             self.end_headers()
 
