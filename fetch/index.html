@@ -143,6 +143,13 @@
             .tabcontent {
             display: none;
             }
+            .fieldnotes {
+                font-size: small;
+                max-width: 50%;
+            }
+            li{
+                font-size: small;
+            }
         </style>
     </head>
     <body>
@@ -160,6 +167,13 @@
                     <label for="date">Date</label>
                     <input type="date" id="date" name="date" required>
                 </p>
+                <p class="fieldnotes">
+                    For the following fields:
+                    <ul>
+                        <li>The check box indicates if you wish to use the corresponding device in your experiment</li>
+                        <li>The text box indicates the title you wish to give the instrument you are using</li>
+                    </ul>
+                </p>
                 <p>
                     <label for="temp1">Temp Sensor 1</label>
                     <input type="checkbox" id="temp1Checkbox" />
@@ -170,6 +184,9 @@
                     <input type="checkbox" id="temp2Checkbox" />
                     <input type="text" name="temp2" id="temp2" disabled />
                 </p>
+                <p class="fieldnotes">
+                    Both temperature sensors are connected via 1 Esp32 over USB. Sensors 1 and 2 correspond to the numbers on the sensor enclosure.
+                </p>
                 <p>
                     <label for="vna1">VNA 1</label>
                     <input type="checkbox" id="vna1Checkbox" />
@@ -179,6 +196,13 @@
                     <label for="vna2">VNA 2</label>
                     <input type="checkbox" id="vna2Checkbox" />
                     <input type="text" name="vna2" id="vna2" disabled />
+                </p>
+                <p class="fieldnotes">
+                    Compatible VNAs with this platform are:
+                    <ul>
+                        <li>N9914A (6.5GHz)</li>
+                        <li>N9913A (4GHz)</li>
+                    </ul>
                 </p>
                 <input type="submit" value="Create Experiment" class="button">
             </form>
@@ -227,11 +251,14 @@
             </div>
             <br><br>
             <div>
-                <b>Configuration</b>
+                <b>Select data sampling rate</b>
+                <p class="fieldnotes">This will affect how often the frequency and temperature data will be collected and stored.
+                    After the set period, the application will retreive a csv and S2P file from any connected VNAs.
+                </p>
+                <p class="fieldnotes"><strong>Warning: Setting a low period may result in unnecessarily large amounts of data.</strong></p>
                 <br><br>
                 <label for="datarate">Sampling Period (sec): </label>
                 <input type="number" id="datarate" name="datarate">
-                <br><br>
                 <button id="cfgRate" class="button">Update Config</button>
             </div>
             <br><br>
