@@ -15,14 +15,9 @@
             function stop() {
                 fetch('/api/stop', {
                     method: 'POST'
-                }).then(res => {
-                    if (res.status == 200) {
-                        alert('Data collection stopped!');
-                    } else {
-                        alert('Encountered an error.');
-                        console.log(res);
-                    }
-                }).catch(err => {
+                }).then(res => res.json())
+                .then(data => alert(data))
+                .catch(err => {
                     console.log(err);
                 });
             }
