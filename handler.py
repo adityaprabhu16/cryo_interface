@@ -91,8 +91,9 @@ def build_response_handler(app_thread: AppThread):
                 self.start()
             elif parsed.path == '/api/stop':
                 app_thread.running = False
-                self.send_response_only(HTTPStatus.OK)
-                self.end_headers()
+                self.send_json_response("Data collection stopped!", status=HTTPStatus.BAD_REQUEST)
+                # self.send_response_only(HTTPStatus.OK)
+                # self.end_headers()
             elif parsed.path == '/api/create_experiment':
                 self.create_experiment()
             elif parsed.path == '/api/select_existing_experiment':
@@ -190,12 +191,15 @@ def build_response_handler(app_thread: AppThread):
             """
             if app_thread.experiment_selected:
                 app_thread.running = True
-                self.send_response_only(HTTPStatus.OK)
+                msg = "Data Collection started!"
+                self.send_json_response(msg, status=HTTPStatus.OK)
+                # self.send_response_only(HTTPStatus.OK)
                 self.end_headers()
             else:
                 msg = 'Cannot start data collection before starting an experiment.'
                 logging.warning(msg)
                 self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
+                
         
         def connect(self) -> None:
             length = int(self.headers.get('length'))
