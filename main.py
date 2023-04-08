@@ -1,3 +1,6 @@
+"""
+Main module for running the application.
+"""
 
 from http.server import ThreadingHTTPServer
 
@@ -8,7 +11,6 @@ from handler import build_response_handler
 def run_server(server_class, handler_class) -> None:
     """
     Run the server.
-    
     :param server_class: Type of server to run.
     :param handler_class: HTTP response handler.
     """
@@ -18,6 +20,9 @@ def run_server(server_class, handler_class) -> None:
 
 
 def main():
+    """
+    Main function.
+    """
     app_thread = AppThread()
     app_thread.start()
     try:

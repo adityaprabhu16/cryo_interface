@@ -3,14 +3,15 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 import json
 import logging
-from metadata import Metadata
 import os
-import serial
 import socket
 from typing import Dict
 from urllib.parse import urlparse
 
+import serial
+
 from app_thread import AppThread
+from metadata import Metadata
 from utils import EnhancedJSONEncoder, find_available_devices, find_previous_experiments
 from vna import build_cmd, VNA_PORT
 

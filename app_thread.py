@@ -1,19 +1,26 @@
+"""
+Module for the AppThread class.
+"""
 
 import logging
-from metadata import Metadata
 import os
 import queue
-import serial
 import socket
 from threading import Thread
 import time
 from typing import List, Optional
 
+import serial
+
 from config import Config
+from metadata import Metadata
 from vna import build_cmd
 
 
 class AppThread(Thread):
+    """
+    Thread for running data logging activities concurrently with the web server.
+    """
 
     def __init__(self):
         super().__init__()
@@ -50,15 +57,19 @@ class AppThread(Thread):
         self.killed = False
 
     def run(self):
-
+        """
+        Function that is run when the thread is started.
+        """
         # Run forever as long as the thread has not been killed.
         while not self.killed:
 
             # If the experiment is running.
             if self.running:
+                path = os.path.join('experiments', self.dir, 'data.csv')
                 # Open the file for saving temperature data.
-                with open(os.path.join('experiments', self.dir, 'data.csv'), 'w+') as wf:
-                    # We loop here so check again if the experiment is running and the application is alive.
+                with open(path, 'w+', encoding='utf-8') as wf:
+                    # We loop here so check again if the experiment is running and the
+                    # application is alive.
                     while self.running and not self.killed:
 
                         # Whether we need to try again at taking data due to an error.
@@ -74,7 +85,8 @@ class AppThread(Thread):
                                 self.con.write('GET TEMP\n'.encode('utf-8'))
                                 self.con.flush()
 
-                                # Read until the newline character, decode to utf-8, and remove the ending newline character.
+                                # Read until the newline character, decode to utf-8,
+                                # and remove the ending newline character.
                                 data = self.con.readline().decode('utf-8').rstrip()
                                 # Get temperatures from the string.
                                 temp1, temp2 = [float(x) for x in data.split(',')]
@@ -87,16 +99,17 @@ class AppThread(Thread):
 
                                 # Store data points in memory.
                                 self.data.append(data)
-                                
                                 # Write to the CSV file.
                                 wf.write(f'{t},{temp1},{temp2}\n')
 
                                 # Send data to every queue in the pool.
-                                for queue in self.queue_pool:
-                                    queue.put(data)
+                                for q in self.queue_pool:
+                                    q.put(data)
 
                             except serial.serialutil.SerialException:
-                                logging.exception('Encountered an error while communicating with the ESP32. Closing connection.')
+                                msg = 'Encountered an error while communicating with the ESP32.' \
+                                      'Closing connection.'
+                                logging.exception(msg)
                                 try:
                                     self.con.close()
                                 except:
@@ -104,7 +117,7 @@ class AppThread(Thread):
                                 self.con = None
                             except:
                                 logging.exception('Exception encountered in app thread.')
-                        
+
                         # If we are connected to VNA 1.
                         if self.vna_con1:
                             try:
@@ -114,14 +127,16 @@ class AppThread(Thread):
 
                                 try:
                                     end_idx = text.index('END')
-                                    with open(os.path.join('experiments', self.dir, f'vna1_{int(t)}.csv'), 'w') as csv_wf:
+                                    path = os.path.join('experiments',
+                                                        self.dir,
+                                                        f'vna1_{int(t)}.csv')
+                                    with open(path, 'w', encoding='utf-8') as csv_wf:
                                         for line in text[text.index('BEGIN'):text.index('END')].split('\n')[1:]:
                                             csv_wf.write(line)
                                     print('Done writing to CSV.')
                                 except ValueError:
                                     logging.exception('Error.')
                                     retry = True
-                                    pass
                             except:
                                 logging.exception('Error')
                                 try:
@@ -129,7 +144,7 @@ class AppThread(Thread):
                                 except:
                                     logging.exception('Error closing connection')
                                 self.vna_con1 = None
-                        
+
                         # If we are connected to VNA 2.
                         if self.vna_con2:
                             try:
@@ -139,14 +154,16 @@ class AppThread(Thread):
 
                                 try:
                                     end_idx = text.index('END')
-                                    with open(os.path.join('experiments', self.dir, f'vna2_{int(t)}.csv'), 'w') as csv_wf:
+                                    path = os.path.join('experiments',
+                                                        self.dir,
+                                                        f'vna2_{int(t)}.csv')
+                                    with open(path, 'w', encoding='utf-8') as csv_wf:
                                         for line in text[text.index('BEGIN'):text.index('END')].split('\n')[1:]:
                                             csv_wf.write(line)
                                     print('Done writing to CSV.')
                                 except ValueError:
                                     logging.exception('Error.')
                                     retry = True
-                                    pass
                             except:
                                 logging.exception('Error')
                                 try:
@@ -154,20 +171,18 @@ class AppThread(Thread):
                                 except:
                                     logging.exception('Error closing connection')
                                 self.vna_con2 = None
-                        
                         if not retry:
                             # Sleep until it's time to collect the next data point.
                             time.sleep(self.config.period)
-                
+
             while not self.running and not self.killed:
                 # Sleep to avoid wasting CPU resources.
                 time.sleep(0.01)
-                
-    
+
     def get_queue(self) -> queue.Queue:
         """
         Get a new queue for the data stream.
-        
+
         :return: A queue containing all data up to this point.
         """
         # Create a new queue.
@@ -176,16 +191,16 @@ class AppThread(Thread):
         # Add previous data to the queue.
         for item in self.data:
             q.put(item)
-        
+
         # Add the queue to the queue pool.
         self.queue_pool.append(q)
 
         return q
 
-    def start(self) -> None:
-        return super().start()
-    
     def stop(self):
+        """
+        Stop the thread.
+        """
         self.killed = True
         # Close all connections.
         if self.con:

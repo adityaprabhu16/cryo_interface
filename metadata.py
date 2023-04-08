@@ -1,3 +1,6 @@
+"""
+Module for the Metadata class.
+"""
 
 from dataclasses import dataclass
 from typing import Optional
@@ -5,6 +8,9 @@ from typing import Optional
 
 @dataclass
 class Metadata:
+    """
+    Dataclass for storing experimental metadata.
+    """
     name: str
     cpa: str
     date: str
