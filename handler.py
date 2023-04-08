@@ -12,14 +12,7 @@ from urllib.parse import urlparse
 
 from app_thread import AppThread
 from utils import EnhancedJSONEncoder, find_available_devices, find_previous_experiments
-
-
-VNA_PORT = 5025
-
-
-def build_cmd(cmd: str) -> bytes:
-    cmd = cmd + '\n'
-    return bytes(cmd, 'utf-8')
+from vna import build_cmd, VNA_PORT
 
 
 def build_response_handler(app_thread: AppThread):
@@ -91,15 +84,10 @@ def build_response_handler(app_thread: AppThread):
                 self.start()
             elif parsed.path == '/api/stop':
                 app_thread.running = False
-                self.send_json_response("Data collection stopped!", status=HTTPStatus.BAD_REQUEST)
-                # self.send_response_only(HTTPStatus.OK)
-                # self.end_headers()
+                # TODO: do we really need to send a json response?
+                self.send_json_response("Data collection stopped!", status=HTTPStatus.OK)
             elif parsed.path == '/api/create_experiment':
                 self.create_experiment()
-            elif parsed.path == '/api/select_existing_experiment':
-                # TODO
-                self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
-                self.end_headers()
             elif parsed.path == '/api/connect':
                 self.connect()
             elif parsed.path == '/api/connect_vna1':
@@ -169,6 +157,7 @@ def build_response_handler(app_thread: AppThread):
                 self.send_json_response("'content-type' was not 'application/json'", status=HTTPStatus.BAD_REQUEST)
                 return
             
+            # TODO: add more error checking
             length = int(self.headers.get('length'))
             content = self.rfile.read(length)
             config = json.loads(content)
@@ -191,31 +180,40 @@ def build_response_handler(app_thread: AppThread):
             """
             if app_thread.experiment_selected:
                 app_thread.running = True
-                msg = "Data Collection started!"
+                msg = 'Data Collection started!'
+                # TODO: do we really need a json response here?
                 self.send_json_response(msg, status=HTTPStatus.OK)
                 # self.send_response_only(HTTPStatus.OK)
-                self.end_headers()
+                # self.end_headers()
             else:
                 msg = 'Cannot start data collection before starting an experiment.'
                 logging.warning(msg)
                 self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
                 
-        
         def connect(self) -> None:
+            # TODO: add error handling
             length = int(self.headers.get('length'))
             port = json.loads(self.rfile.read(length).decode('utf-8'))
+
+            # Check if there's an existing connection that we need to close.
             if app_thread.con:
                 try:
                     logging.info('Closing existing serial connection.')
                     app_thread.con.close()
                 except:
                     logging.exception('An error occured while closing the existing connection.')
+            
+            # Find available ports
             available = find_available_devices()
+
+            # Check if the requested  port is one the available ports
             if port not in available:
                 msg = f"The requested port '{port}' is not available."
                 logging.warning(msg)
                 self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
                 return
+
+            # TODO: baudrate constant should be defined elsewhere.
             baudrate = 9600
             timeout = 5
 
@@ -230,6 +228,7 @@ def build_response_handler(app_thread: AppThread):
             """
             Connect to the VNA at the provided IP address.
             """
+            # TODO: improve error handling
             # Get the length of the request's contents.
             length = int(self.headers.get('length'))
 
@@ -311,17 +310,16 @@ def build_response_handler(app_thread: AppThread):
         def create_experiment(self) -> None:
             # Make sure that we haven't already selected an experiment.
             if app_thread.experiment_selected:
-                self.send_response_only(HTTPStatus.BAD_REQUEST)
-                self.end_headers()
+                self.send_json_response('No experiment selected.', status=HTTPStatus.BAD_REQUEST)
                 return
 
             # We expect JSON content for this request.
             if self.headers.get('content-type') != 'application/json':
-                self.send_response_only(HTTPStatus.BAD_REQUEST)
-                self.end_headers()
+                self.send_json_response("content-type was not 'application/json'", status=HTTPStatus.BAD_REQUEST)
                 return
 
             # Determine content length, read the data, decode it, and load it as JSON.
+            # TODO: add better error handling here.
             length = int(self.headers.get('length'))
             content = self.rfile.read(length).decode('utf-8')
             metadata = json.loads(content)
@@ -332,8 +330,7 @@ def build_response_handler(app_thread: AppThread):
 
             # Check that a name, cpa, and date were provided
             if name is None or cpa is None or date is None:
-                self.send_response_only(HTTPStatus.BAD_REQUEST)
-                self.end_headers()
+                self.send_json_response('Missing required field.', status=HTTPStatus.BAD_REQUEST)
                 return
 
             directory = f'{name}_{cpa}_{date}'
@@ -343,15 +340,15 @@ def build_response_handler(app_thread: AppThread):
                 os.makedirs(os.path.join('experiments', directory))
             except FileExistsError:
                 # If the directory already exists log a warning and exit.
-                logging.warning('The requested directory already exists.')
-                self.send_response_only(HTTPStatus.BAD_REQUEST)
-                self.end_headers()
+                msg = 'The requested directory already exists.'
+                logging.warning(msg)
+                self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
                 return
             except Exception:
                 # If we encounter an unexpected exception log it and return.
-                logging.exception('Error creating experiment directory.')
-                self.send_response_only(HTTPStatus.BAD_REQUEST)
-                self.end_headers()
+                msg = 'Error creating experiment directory.'
+                logging.exception(msg)
+                self.send_json_response(msg, status=HTTPStatus.INTERNAL_SERVER_ERROR)
                 return
             
             app_thread.metadata = Metadata(name=name,

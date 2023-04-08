@@ -7,11 +7,7 @@ from threading import Thread
 import time
 
 from config import Config
-
-
-def build_cmd(cmd: str) -> bytes:
-    cmd = cmd + '\n'
-    return bytes(cmd, 'utf-8')
+from vna import build_cmd
 
 
 class AppThread(Thread):
