@@ -16,7 +16,6 @@ Install required Python packages:
 
 `pip install -r requirements.txt`
 
-
 ## Run
 
 `python main.py`
@@ -24,6 +23,30 @@ Install required Python packages:
 Note: The application has been tested using Python 3.9. Python 3.5 or newer is required.
 
 Access the GUI by going to `localhost:4951` in your web browser.
+
+## Application
+
+File structure:
+```
+|- app_thread.py
+|- config.py
+|- handler.py
+|- main.py
+|- metadata.py
+|- utils.py
+|- vna.py
+|- experiments/
+   |- name_cpa_date/
+   ...
+```
+
+**app_thread.py**
+
+The `AppThread` class extends the built-in `Thread` class from the `threading` module. This class is responsible for collecting data concurrent to the web server running.
+
+**handler.py**
+
+The `build_response_handler` function takes in `app_thread` as its only argument and returns a class that extends `BaseHTTPRequestHandler`. This is done so the the returned handler class can interact with app_thread while serving HTTP requests. The purpose of the returned handler class is to implement the logic necessary to support the GUI on the server side.
 
 ## Microcontroller
 
@@ -49,43 +72,43 @@ This API is used by the GUI to interact with the Python application.
 
 ### GET
 
-`GET /api/metadata`
+**GET /api/metadata**
 
 Get the metadata stored by the server.
 
 `returns:` JSON dictionary of the metadata.
 
-`GET /api/config`
+**GET /api/config**
 
 Get the current configuration from the server.
 
 `returns:` JSON dictionary of the current server configuration.
 
-`GET /api/devices`
+**GET /api/devices**
 
 Detect available USB devices.
 
 `returns:` JSON list of ports that have available USB devices.
 
-`GET /api/stream_data`
+**GET /api/stream_data**
 
 Send all data to the client and stream it as it becomes available.
 
 `returns:` Stream of JSON events.
 
-`GET /api/running`
+**GET /api/running**
 
 Whether or not an experiment is currently running.
 
 `returns:` `true` if an experiment is running, `false` otherwise.
 
-`GET /api/previous_experiments`
+**GET /api/previous_experiments**
 
 Get a list of previous experiments.
 
 `returns:` JSON list containing previous experiments.
 
-`GET /api/experiment_selected`
+**GET /api/experiment_selected**
 
 Whether or not the user has selected an experiment.
 
@@ -93,39 +116,39 @@ Whether or not the user has selected an experiment.
 
 ### POST
 
-`POST /api/config`
+**POST /api/config**
 
 Update the data collection configuration (sampling frequency, etc.).
 
 `send:` JSON containing the config as a dictionary.
 
-`POST /api/start`
+**POST /api/start**
 
 Signal to the application to begin collecting data.
 
-`POST /api/stop`
+**POST /api/stop**
 
 Signal to the application to stop collecting data.
 
-`POST /api/create_experiment`
+**POST /api/create_experiment**
 
 Create a new experiment. This will create a new directory using fields from the metadata.
 
 `send:` JSON dictionary containing metadata.
 
-`POST /api/connect`
+**POST /api/connect**
 
 Connect to the USB device with the provided port.
 
 `send:` Port of the device to connect to.
 
-`POST /api/connect_vna1`
+**POST /api/connect_vna1**
 
 Connect to the VNA with the specified IP address.
 
 `send:` IP address as a string.
 
-`POST /api/connect_vna2`
+**POST /api/connect_vna2**
 
 Connect to the VNA with the specified IP address.
 
