@@ -1,11 +1,15 @@
+"""
+Utility functions used in various places throughout the program.
+"""
 
 import dataclasses
 import glob
 import json
 import os
-import serial
 import sys
-from typing import Dict, List
+from typing import List
+
+import serial
 
 
 class EnhancedJSONEncoder(json.JSONEncoder):
@@ -41,11 +45,6 @@ def find_available_devices() -> List[str]:
         s = None
         try:
             s = serial.Serial(port)
-            # s.reset_input_buffer()
-            # s.reset_output_buffer()
-            # s.write('*IDN?\n'.encode('utf-8'))
-            # s.flush()
-            # r = s.readline().decode('utf-8').rstrip()
             s.close()
             result.append(port)
         except Exception:
@@ -55,4 +54,9 @@ def find_available_devices() -> List[str]:
 
 
 def find_previous_experiments() -> List[str]:
+    """
+    Find what previous experiments are available.
+    
+    :returns: List of directories (experiment names)
+    """
     return next(os.walk('experiments/'))[1]

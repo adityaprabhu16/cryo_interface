@@ -16,11 +16,15 @@ from utils import EnhancedJSONEncoder, find_available_devices, find_previous_exp
 from vna import build_cmd, VNA_PORT
 
 
+USB_BAUD_RATE = 9600
+
+
 def build_response_handler(app_thread: AppThread):
     """
     Build the HTTP response handler class.
     
-    :param app_thread: AppThread that will run application operations concurrent to server operations.
+    :param app_thread: AppThread that will run application operations concurrent to server
+    operations.
 
     :return: ResponseHandler class that extends BaseHTTPRequestHandler.
     """
@@ -85,8 +89,7 @@ def build_response_handler(app_thread: AppThread):
                 self.start()
             elif parsed.path == '/api/stop':
                 app_thread.running = False
-                # TODO: do we really need to send a json response?
-                self.send_json_response("Data collection stopped!", status=HTTPStatus.OK)
+                self.send_json_response('Data collection stopped!', status=HTTPStatus.OK)
             elif parsed.path == '/api/create_experiment':
                 self.create_experiment()
             elif parsed.path == '/api/connect':
@@ -155,18 +158,31 @@ def build_response_handler(app_thread: AppThread):
             """
             # Check if we got the expected content-type
             if self.headers.get('content-type') != 'application/json':
-                self.send_json_response("'content-type' was not 'application/json'", status=HTTPStatus.BAD_REQUEST)
+                self.send_json_response("'content-type' was not 'application/json'.", status=HTTPStatus.BAD_REQUEST)
                 return
             
-            # TODO: add more error checking
-            length = int(self.headers.get('length'))
-            content = self.rfile.read(length)
-            config = json.loads(content)
+            try:
+                length = int(self.headers.get('length'))
+            except TypeError:
+                self.send_json_response("'length' was not an integer.", status=HTTPStatus.BAD_REQUEST)
+                return
+            
+            try:
+                content = self.rfile.read(length)
+            except:
+                self.send_json_response('Error reading request contents.', status=HTTPStatus.BAD_REQUEST)
+                return
 
+            try:
+                config = json.loads(content)
+            except:
+                self.send_json_response('Error loading JSON contents.', status=HTTPStatus.BAD_REQUEST)
+                return
+            
             period = config.get('period')
 
             if type(period) != int:
-                self.send_json_response("'period' was not an integer", status=HTTPStatus.BAD_REQUEST)
+                self.send_json_response("'period' was not an integer.", status=HTTPStatus.BAD_REQUEST)
                 return
 
             app_thread.config.period = period
@@ -182,19 +198,33 @@ def build_response_handler(app_thread: AppThread):
             if app_thread.experiment_selected:
                 app_thread.running = True
                 msg = 'Data Collection started!'
-                # TODO: do we really need a json response here?
                 self.send_json_response(msg, status=HTTPStatus.OK)
-                # self.send_response_only(HTTPStatus.OK)
-                # self.end_headers()
             else:
                 msg = 'Cannot start data collection before starting an experiment.'
                 logging.warning(msg)
                 self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
                 
         def connect(self) -> None:
-            # TODO: add error handling
-            length = int(self.headers.get('length'))
-            port = json.loads(self.rfile.read(length).decode('utf-8'))
+            """
+            Connect to microcontroller for temperature measurement.
+            """
+            # Check if a temperature sensor was selected
+            if app_thread.metadata.temp1 is None and app_thread.metadata.temp2 is None:
+                msg = 'No temperature sensor was selected for this experiment.'
+                self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
+                return
+            
+            try:
+                length = int(self.headers.get('length'))
+            except TypeError:
+                self.send_json_response("'length' was not an integer.", status=HTTPStatus.BAD_REQUEST)
+                return
+            
+            try:
+                port = json.loads(self.rfile.read(length).decode('utf-8'))
+            except:
+                self.send_json_response('Error reading JSON contents.', status=HTTPStatus.BAD_REQUEST)
+                return
 
             # Check if there's an existing connection that we need to close.
             if app_thread.con:
@@ -213,13 +243,15 @@ def build_response_handler(app_thread: AppThread):
                 logging.warning(msg)
                 self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
                 return
-
-            # TODO: baudrate constant should be defined elsewhere.
-            baudrate = 9600
+            
             timeout = 5
 
-            # TODO: this may fail, should add error handling
-            app_thread.con = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
+            try:
+                app_thread.con = serial.Serial(port=port, baudrate=USB_BAUD_RATE, timeout=timeout)
+            except:
+                msg = f"Unable to open port '{port}'"
+                logging.exception(msg)
+                self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
 
             logging.info(f'Connected to USB device at {port}')
             self.send_response_only(HTTPStatus.OK)
@@ -229,12 +261,25 @@ def build_response_handler(app_thread: AppThread):
             """
             Connect to the VNA at the provided IP address.
             """
-            # TODO: improve error handling
+            # Check if VNA 1 has been selected
+            if app_thread.metadata.vna1 is None:
+                msg = 'VNA 1 was not selected for this experiment.'
+                self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
+                return
+
             # Get the length of the request's contents.
-            length = int(self.headers.get('length'))
+            try:
+                length = int(self.headers.get('length'))
+            except TypeError:
+                self.send_json_response("'length' was not an integer.", status=HTTPStatus.BAD_REQUEST)
+                return
 
             # Read the VNA IP address from the requests contents.
-            host = json.loads(self.rfile.read(length).decode('utf-8'))
+            try:
+                host = json.loads(self.rfile.read(length).decode('utf-8'))
+            except:
+                self.send_json_response('Error reading JSON contents.', status=HTTPStatus.BAD_REQUEST)
+                return
 
             # Check if the connection to the VNA already exists.
             if app_thread.vna_con1:
@@ -271,11 +316,25 @@ def build_response_handler(app_thread: AppThread):
             """
             Connect to the VNA at the provided IP address.
             """
+            # Check if VNA 2 has been selected
+            if app_thread.metadata.vna2 is None:
+                msg = 'VNA 2 was not selected for this experiment.'
+                self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
+                return
+            
             # Get the length of the request's contents.
-            length = int(self.headers.get('length'))
+            try:
+                length = int(self.headers.get('length'))
+            except TypeError:
+                self.send_json_response("'length' was not an integer.", status=HTTPStatus.BAD_REQUEST)
+                return
 
             # Read the VNA IP address from the requests contents.
-            host = json.loads(self.rfile.read(length).decode('utf-8'))
+            try:
+                host = json.loads(self.rfile.read(length).decode('utf-8'))
+            except:
+                self.send_json_response('Error reading JSON contents.', status=HTTPStatus.BAD_REQUEST)
+                return
 
             # Check if the connection to the VNA already exists.
             if app_thread.vna_con2:
@@ -309,6 +368,9 @@ def build_response_handler(app_thread: AppThread):
             self.end_headers()
 
         def create_experiment(self) -> None:
+            """
+            Handle the request to create a new experiment.
+            """
             # Make sure that we haven't already selected an experiment.
             if app_thread.experiment_selected:
                 self.send_json_response('No experiment selected.', status=HTTPStatus.BAD_REQUEST)
@@ -321,9 +383,23 @@ def build_response_handler(app_thread: AppThread):
 
             # Determine content length, read the data, decode it, and load it as JSON.
             # TODO: add better error handling here.
-            length = int(self.headers.get('length'))
-            content = self.rfile.read(length).decode('utf-8')
-            metadata = json.loads(content)
+            try:
+                length = int(self.headers.get('length'))
+            except TypeError:
+                self.send_json_response("'length' was not an integer.", status=HTTPStatus.BAD_REQUEST)
+                return
+            
+            try:
+                content = self.rfile.read(length).decode('utf-8')
+            except:
+                self.send_json_response('Error reading request contents.', status=HTTPStatus.BAD_REQUEST)
+                return
+            
+            try:
+                metadata = json.loads(content)
+            except:
+                self.send_json_response('Error parsing JSON contents.', status=HTTPStatus.BAD_REQUEST)
+                return
 
             name = metadata.get('name')
             cpa = metadata.get('cpa')
