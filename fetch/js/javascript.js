@@ -92,6 +92,7 @@ function loadMetadata() {
     fetch('/api/metadata')
     .then(res => res.json())
     .then(data => {
+        document.getElementById("metadata-title").textContent = data.title;
         document.getElementById("metadata-name").textContent = data.name;
         document.getElementById("metadata-cpa").textContent = data.cpa;
         document.getElementById("metadata-date").textContent = data.date;

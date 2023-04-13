@@ -11,6 +11,7 @@ class Metadata:
     """
     Dataclass for storing experimental metadata.
     """
+    title: str
     name: str
     cpa: str
     date: str

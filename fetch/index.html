@@ -8,6 +8,10 @@
         <div id="new_experiment" class="tabcontent">
             <form id="create_experiment">
                 <p>
+                    <label for="title">Experiment Title</label>
+                    <input id="title" name="title" type="text" required>
+                </p>
+                <p>
                     <label for="name">Name</label>
                     <input id="name" name="name" type="text" required>
                 </p>
@@ -66,6 +70,7 @@
             <div>
                 <b>Metadata</b>
                 <br><br>
+                <b>Experiment: </b><span id="metadata-title"></span>
                 <b>Name: </b><span id="metadata-name"></span>
                 <br>
                 <b>CPA: </b><span id="metadata-cpa"></span>

@@ -404,13 +404,13 @@ def build_response_handler(app_thread: AppThread):
             except:
                 self.send_json_response('Error parsing JSON contents.', status=HTTPStatus.BAD_REQUEST)
                 return
-
+            title = metadata.get('title')
             name = metadata.get('name')
             cpa = metadata.get('cpa')
             date = metadata.get('date')
 
             # Check that a name, cpa, and date were provided
-            if name is None or cpa is None or date is None:
+            if name is None or cpa is None or date is None or title is None:
                 self.send_json_response('Missing required field.', status=HTTPStatus.BAD_REQUEST)
                 return
 
@@ -432,7 +432,8 @@ def build_response_handler(app_thread: AppThread):
                 self.send_json_response(msg, status=HTTPStatus.INTERNAL_SERVER_ERROR)
                 return
             
-            app_thread.metadata = Metadata(name=name,
+            app_thread.metadata = Metadata(title=title,
+                                           name=name,
                                            cpa=cpa,
                                            date=date,
                                            temp1=metadata.get('temp1'),
