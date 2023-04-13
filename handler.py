@@ -44,6 +44,10 @@ def build_response_handler(app_thread: AppThread):
             # Serve this request depending on the requested path.
             if parsed.path in ['/', '/index', '/index.html']:
                 self.send_file_response('fetch/index.html')
+            elif parsed.path == '/js/javascript.js':
+                self.send_file_response('fetch/js/javascript.js', 'application/javascript')
+            elif parsed.path == '/css/styling.css':
+                self.send_file_response('fetch/css/styling.css', 'text/css')
             elif parsed.path == '/plotly-2.19.1.min.js':
                 self.send_file_response('fetch/plotly-2.19.1.min.js', content_type='application/javascript')
             elif parsed.path == '/api/metadata':
@@ -110,7 +114,7 @@ def build_response_handler(app_thread: AppThread):
             :param content_type: Content type of the file, defaults to 'text/html'
             """
             self.send_response(HTTPStatus.OK)
-            self.send_header('Content-type', content_type)
+            self.send_header('Content-Type', content_type)
             self.end_headers()
             with open(path, encoding='utf-8') as f:
                 self.wfile.write(f.read().encode('utf-8'))
