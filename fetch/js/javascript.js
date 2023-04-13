@@ -30,12 +30,7 @@ function connect() {
         method: "POST",
         body: json
     })
-    .then(res => {
-        if(res.status == 200){
-            alert("Successfully Connected!");
-        }
-        res.json()
-    })
+    .then(res => res.json())
     .then(data =>{
         alert(data);
     })
