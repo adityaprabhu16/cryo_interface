@@ -1,6 +1,8 @@
 <html>
     <head>
+        <link rel="stylesheet" href="css/styling.css">
         <script src="plotly-2.19.1.min.js"></script>
+        <script src="js/javascript.js"></script>
         <script>
             function start() {
                 fetch('/api/start', {
@@ -34,7 +36,12 @@
                     method: "POST",
                     body: json
                 })
-                .then(res => res.json())
+                .then(res => {
+                    if(res.status == 200){
+                        alert("Successfully Connected!");
+                    }
+                    res.json()
+                })
                 .then(data =>{
                     alert(data);
                 })
@@ -134,9 +141,9 @@
                 font-size: small;
                 max-width: 50%;
             }
-            li{
+            /* li{
                 font-size: small;
-            }
+            } */
         </style>
     </head>
     <body>
@@ -154,11 +161,11 @@
                     <label for="date">Date</label>
                     <input type="date" id="date" name="date" required>
                 </p>
-                <p class="fieldnotes">
-                    For the following fields:
+                <p>
+                    For the following Temperature sensor and VNA fields:
                     <ul>
-                        <li>The check box indicates if you wish to use the corresponding device in your experiment</li>
-                        <li>The text box indicates the title you wish to give the instrument you are using</li>
+                        <li>Check the box to use the corresponding device in your experiment</li>
+                        <li>Put the title you wish to give the instrument you are using into the corresponding text box</li>
                     </ul>
                 </p>
                 <p>
@@ -172,7 +179,14 @@
                     <input type="text" name="temp2" id="temp2" disabled />
                 </p>
                 <p class="fieldnotes">
-                    Both temperature sensors are connected via 1 Esp32 over USB. Sensors 1 and 2 correspond to the numbers on the sensor enclosure.
+                    Both temperature sensors are connected from the enclosure over USB. Sensors 1 and 2 correspond to the numbers on the sensor enclosure.
+                </p>
+                <p class="fieldnotes">
+                    Compatible VNAs with this platform are:
+                    <ul>
+                        <li class="fieldnotes">N9914A (6.5GHz)</li>
+                        <li class="fieldnotes">N9913A (4GHz)</li>
+                    </ul>
                 </p>
                 <p>
                     <label for="vna1">VNA 1</label>
@@ -184,13 +198,7 @@
                     <input type="checkbox" id="vna2Checkbox" />
                     <input type="text" name="vna2" id="vna2" disabled />
                 </p>
-                <p class="fieldnotes">
-                    Compatible VNAs with this platform are:
-                    <ul>
-                        <li>N9914A (6.5GHz)</li>
-                        <li>N9913A (4GHz)</li>
-                    </ul>
-                </p>
+                
                 <input type="submit" value="Create Experiment" class="button">
             </form>
             
@@ -244,8 +252,10 @@
                 </p>
                 <p class="fieldnotes"><strong>Warning: Setting a low period may result in unnecessarily large amounts of data.</strong></p>
                 <br><br>
-                <label for="datarate">Sampling Period (sec): </label>
-                <input type="number" id="datarate" name="datarate">
+                <label for="datarate">Sampling Period: </label>
+                <br>
+                <input type="number" id="mins" name="mins"> mins
+                <input type="number" id="datarate" name="datarate"> seconds
                 <button id="cfgRate" class="button">Update Config</button>
             </div>
             <br><br>
@@ -300,7 +310,7 @@
                 "layout": {
                     "width": 600,
                     "height": 400,
-                    "title": "Temperature"},
+                    "title": "Temperature (Celsius)"},
                 "type": "line"
             });
 
@@ -311,10 +321,33 @@
                     document.getElementById("metadata-name").textContent = data.name;
                     document.getElementById("metadata-cpa").textContent = data.cpa;
                     document.getElementById("metadata-date").textContent = data.date;
-                    document.getElementById("metadata-temp1").textContent = data.temp1;
-                    document.getElementById("metadata-temp2").textContent = data.temp2;
-                    document.getElementById("metadata-vna1").textContent = data.vna1;
-                    document.getElementById("metadata-vna2").textContent = data.vna2;
+                    
+                    mdT1 = document.getElementById("metadata-temp1");
+                    mdT1.textContent = data.temp1;
+                    if(!document.getElementById("temp1").disabled && mdT1.textContent.length == 0){
+                        mdT1.textContent = "x";
+                    }
+                    // document.getElementById("metadata-temp1").textContent = data.temp1;
+                    mdT2 = document.getElementById("metadata-temp2");
+                    mdT2.textContent = data.temp2;
+                    if(!document.getElementById("temp2").disabled && mdT2.textContent.length == 0){
+                        mdT2.textContent = "x";
+                    }
+                    // document.getElementById("metadata-temp2").textContent = data.temp2;
+                    mdV1 = document.getElementById("metadata-vna1");
+                    mdV1.textContent = data.vna1;
+                    if(!document.getElementById("vna1").disabled && mdV1.textContent.length == 0){
+                        mdV1.textContent = "x";
+                    }
+                    // document.getElementById("metadata-vna1").textContent = data.vna1;
+                    mdV2 = document.getElementById("metadata-vna2");
+                    mdV2.textContent = data.vna2;
+                    if(!document.getElementById("vna2").disabled && mdV2.textContent.length == 0){
+                        mdV2.textContent = "x";
+                    }
+                    // document.getElementById("metadata-vna2").textContent = data.vna2;
+
+
                 })
                 .catch(err => console.log(err));
             }
@@ -449,8 +482,9 @@
 
             function cfgRate(){
                 var cfgJSON = {
-                    "period": document.getElementById("datarate").valueAsNumber,
-                }
+                    "period": getPeriodSeconds()
+                    // "period": document.getElementById("datarate").valueAsNumber,
+                }   
                 console.log(cfgJSON);
                 fetch('/api/config', {
                     method:'POST',
@@ -469,6 +503,12 @@
                 .catch(err =>{
                     alert("Failed to congifure data rate");
                 });
+            }
+
+            function getPeriodSeconds(){
+                var mins = document.getElementById("mins").valueAsNumber;
+                var sec = document.getElementById("datarate").valueAsNumber;
+                return (mins*60)+sec;
             }
 
             displayData();
