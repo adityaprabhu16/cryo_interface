@@ -5,132 +5,136 @@
         <script src="js/javascript.js"></script>
     </head>
     <body>
-        <div id="new_experiment" class="tabcontent">
-            <form id="create_experiment">
-                <p>
-                    <label for="title">Experiment Title</label>
-                    <input id="title" name="title" type="text" required>
-                </p>
-                <p>
-                    <label for="name">Name</label>
-                    <input id="name" name="name" type="text" required>
-                </p>
-                <p>
-                    <label for="cpa">CPA</label>
-                    <input type="text" id="cpa" name="cpa" required>
-                </p>
-                <p>
-                    <label for="date">Date</label>
-                    <input type="date" id="date" name="date" required>
-                </p>
-                <p>
-                    For the following Temperature sensor and VNA fields:
-                    <ul>
-                        <li>Check the box to use the corresponding device in your experiment</li>
-                        <li>Put the title you wish to give the instrument you are using into the corresponding text box</li>
-                    </ul>
-                </p>
-                <p>
-                    <label for="temp1">Temp Sensor 1</label>
-                    <input type="checkbox" id="temp1Checkbox" />
-                    <input type="text" name="temp1" id="temp1" disabled />
-                </p>
-                <p>
-                    <label for="temp2">Temp Sensor 2</label>
-                    <input type="checkbox" id="temp2Checkbox" />
-                    <input type="text" name="temp2" id="temp2" disabled />
-                </p>
-                <p class="fieldnotes">
-                    Both temperature sensors are connected from the enclosure over USB. Sensors 1 and 2 correspond to the numbers on the sensor enclosure.
-                </p>
-                <p class="fieldnotes">
-                    Compatible VNAs with this platform are:
-                    <ul>
-                        <li class="fieldnotes">N9914A (6.5GHz)</li>
-                        <li class="fieldnotes">N9913A (4GHz)</li>
-                    </ul>
-                </p>
-                <p>
-                    <label for="vna1">VNA 1</label>
-                    <input type="checkbox" id="vna1Checkbox" />
-                    <input type="text" name="vna1" id="vna1" disabled />
-                    <select name="matchvna1" id="matchvna1"></select>
-                </p>
-                <p>
-                    <label for="vna2">VNA 2</label>
-                    <input type="checkbox" id="vna2Checkbox" />
-                    <input type="text" name="vna2" id="vna2" disabled />
-                    <select name="matchvna2" id="matchvna2"></select>
-                </p>
-                
-                <input type="submit" value="Create Experiment" class="button">
-            </form>
-            
-            
+        <div id="new_experiment" class="tabcontent tabstyle">
+            <div style="width: 100%; display: flex; justify-content: center;">
+                <!-- <p><h1>Create Experiment</h1></p> -->
+                <!-- <br> -->
+                <!-- <div>
+                    <h1>Create Experiment</h1>
+                </div>
+                <br> -->
+                <form id="create_experiment">
+                    <div style="border-radius: 25px; border-color: #4CAF50; border-width: 3px; padding: 20px; width: 100%; border-style: solid;">
+                        <h2 style="text-align: center;">Experiment Metadata</h2>
+                        <p>
+                            <label for="name"><b>Name:</b></label>
+                            <input id="name" name="name" type="text" required>
+                        </p>
+                        <p>
+                            <label for="cpa"><b>CPA:</b></label>
+                            <input type="text" id="cpa" name="cpa" required>
+                        </p>
+                        <p>
+                            <label for="date"><b>Date:</b></label>
+                            <input type="date" id="date" name="date" style="padding: 1em;" required>
+                        </p>
+                    </div>
+                    <br>
+                    <div style="border-radius: 25px; border-color: #4CAF50; border-width: 3px; padding: 20px; width: 100%; border-style: solid;">
+                        <h2 style="text-align: center;">Temperature Sensors</h2>
+                        <p>
+                            For the following Temperature sensor and VNA fields:
+                            <ul>
+                                <li>Check the box to use the corresponding device in your experiment</li>
+                                <li>Put the title you wish to give the instrument you are using into the corresponding text box</li>
+                            </ul>
+                        </p>
+                        <p>
+                            <label for="temp1"><b>Sensor 1:</b></label>
+                            <input type="checkbox" id="temp1Checkbox" title="Select to enable Temperature Sensor 1 for this experiment." />
+                            <input type="text" name="temp1" id="temp1" title="Name Temperature Sensor 1 for this experiment." disabled />
+                        </p>
+                        <p>
+                            <label for="temp2"><b>Sensor 2:</b></label>
+                            <input type="checkbox" id="temp2Checkbox" />
+                            <input type="text" name="temp2" id="temp2" disabled />
+                        </p>
+                        <p>
+                            Both temperature sensors are connected from the enclosure over USB. Sensors 1 and 2 correspond to the numbers on the sensor enclosure.
+                        </p>
+                    </div>
+                    <br>
+                    <div style="border-radius: 25px; border-color: #4CAF50; border-width: 3px; padding: 20px; width: 100%; border-style: solid;">
+                        <h2 style="text-align: center;">VNAs</h2>
+                        <p>
+                            <b>Compatible VNAs:</b>
+                            <ul>
+                                <li>N9914A (6.5GHz)</li>
+                                <li>N9913A (4GHz)</li>
+                            </ul>
+                        </p>
+                        <p>
+                            <label for="vna1"><b>VNA 1:</b></label>
+                            <input type="checkbox" id="vna1Checkbox" />
+                            <input type="text" name="vna1" id="vna1" disabled />
+                        </p>
+                        <p>
+                            <label for="vna2"><b>VNA 2:</b></label>
+                            <input type="checkbox" id="vna2Checkbox" />
+                            <input type="text" name="vna2" id="vna2" disabled />
+                        </p>
+                    </div>
+                    <input type="submit" value="Create Experiment" class="button" style="text-align: center;">
+                </form>
+            </div>
         </div>
         <div id="dashboard" class="tabcontent">
-            <div>
-                <b>Metadata</b>
-                <br><br>
-                <b>Experiment: </b><span id="metadata-title"></span>
+            <div style="border-radius: 25px; border-color: #008CBA; border-width: 3px; padding: 20px; width: 60%; border-style: solid;">
+                <h2>Experiment Setup Metadata</h2>
                 <b>Name: </b><span id="metadata-name"></span>
                 <br>
                 <b>CPA: </b><span id="metadata-cpa"></span>
                 <br>
                 <b>Date: </b><span id="metadata-date"></span>
                 <br>
-                <b>Temp1: </b><span id="metadata-temp1"></span>
+                <b>Temperature 1: </b><span id="metadata-temp1"></span>
                 <br>
-                <b>Temp2: </b><span id="metadata-temp2"></span>
+                <b>Temperature 2: </b><span id="metadata-temp2"></span>
                 <br>
                 <b>VNA 1: </b><span id="metadata-vna1"></span>
                 <br>
                 <b>VNA 2: </b><span id="metadata-vna2"></span>
             </div>
-            <br><br>
-            <div>
-                <b>Temperature Sensor</b>
-                <br><br>
-                <select name="port" id="port">
-                    <!-- <option value="COM3">COM3</option> -->
-                </select>
-                <button id="refresh" class="button">Refresh</button>
-                <button id="connect" class="button">Connect</button>
-            </div>
-            <br><br>
-            <div>
-                <b>VNA</b>
-                <br><br>
-                <label>VNA 1 IP: </label>
-                <input type="text" id="vna1IP" name="vna1IP">
-                <button id="connectVNA1" class="button">Connect</button>
-                <br><br>
-                <label>VNA 2 IP: </label>
-                <input type="text" id="vna2IP" name="vna2IP">
-                <button id="connectVNA2" class="button">Connect</button>
-            </div>
-            <br><br>
-            <div>
-                <b>Select data sampling rate</b>
-                <p class="fieldnotes">This will affect how often the frequency and temperature data will be collected and stored.
-                    After the set period, the application will retreive a csv and S2P file from any connected VNAs.
-                </p>
-                <p class="fieldnotes"><strong>Warning: Setting a low period may result in unnecessarily large amounts of data.</strong></p>
-                <br><br>
-                <label for="datarate">Sampling Period: </label>
-                <br>
-                <input type="number" id="mins" name="mins"> mins
-                <input type="number" id="datarate" name="datarate"> seconds
-                <button id="cfgRate" class="button">Update Config</button>
-            </div>
-            <br><br>
-            <div>
-                <button id="startup" class="button">Start Logging</button>
-                <button id="stop" class="button">Stop Logging</button>
+            <br>
+            <div style="border-radius: 25px; border-color: #008CBA; border-width: 3px; padding: 20px; width: 60%; border-style: solid;">
+                <div>
+                    <h2>Connect Devices</h2>
+                    <h3>Temperature Sensor</h3>
+                    <select name="port" id="port"></select>
+                    <button id="refresh" class="button">Refresh</button>
+                    <button id="connect" class="button">Connect</button>
+                </div>
+                <div>
+                    <h3>VNA</h3>
+                    <label><b>VNA 1 IP:</b></label>
+                    <input type="text" id="vna1IP" name="vna1IP">
+                    <button id="connectVNA1" class="button">Connect</button>
+                    <br>
+                    <label><b>VNA 2 IP:</b></label>
+                    <input type="text" id="vna2IP" name="vna2IP">
+                    <button id="connectVNA2" class="button">Connect</button>
+                </div>
             </div>
             <br>
-            <div id="temp_plot"></div>
-            <div id="vna1_plot"></div>
+            <div style="border-radius: 25px; border-color: #008CBA; border-width: 3px; padding: 20px; width: 60%; border-style: solid;">
+                <h2>Configure Data Collection</h2>
+                <p>This will affect how often the frequency and temperature data will be collected and stored.
+                    After the set period, the application will retreive a csv and S2P file from any connected VNAs.
+                </p>
+                <label for="datarate"><b>Sampling Period:</b></label>
+                <input type="number" id="mins" name="mins"> min
+                <input type="number" id="datarate" name="datarate"> sec
+                <button id="cfgRate" class="button">Update Config</button>
+                <br>
+                <p><strong>Warning: Setting a low period may result in unnecessarily large amounts of data.</strong></p>
+            </div>
+            <br>
+            <div style="border-radius: 25px; border-color: #008CBA; border-width: 3px; padding: 20px; width: 60%; border-style: solid;">
+                <h2>Collect Data</h2>
+                <button id="startup" class="button">Start Logging</button>
+                <button id="stop" class="button">Stop Logging</button>
+                <div id="temp_plot"></div>
+            </div>
         </div>
     </body>
 </html>

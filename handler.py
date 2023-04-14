@@ -410,7 +410,7 @@ def build_response_handler(app_thread: AppThread):
             date = metadata.get('date')
 
             # Check that a name, cpa, and date were provided
-            if name is None or cpa is None or date is None or title is None:
+            if name is None or cpa is None or date is None: # or title is None:
                 self.send_json_response('Missing required field.', status=HTTPStatus.BAD_REQUEST)
                 return
 
