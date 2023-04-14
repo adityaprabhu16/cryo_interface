@@ -9,11 +9,12 @@
             <div style="width: 100%; display: flex; justify-content: center;">
                 <!-- <p><h1>Create Experiment</h1></p> -->
                 <!-- <br> -->
-                <!-- <div>
-                    <h1>Create Experiment</h1>
-                </div>
-                <br> -->
+
                 <form id="create_experiment">
+                    <div style="width: 100%; text-align: center;">
+                        <h1>Create Experiment</h1>
+                    </div>
+                    <!-- <br> -->
                     <div style="border-radius: 25px; border-color: #4CAF50; border-width: 3px; padding: 20px; width: 100%; border-style: solid;">
                         <h2 style="text-align: center;">Experiment Metadata</h2>
                         <p>
@@ -33,10 +34,10 @@
                     <div style="border-radius: 25px; border-color: #4CAF50; border-width: 3px; padding: 20px; width: 100%; border-style: solid;">
                         <h2 style="text-align: center;">Temperature Sensors</h2>
                         <p>
-                            For the following Temperature sensor and VNA fields:
+                            <b>Instructions:</b>
                             <ul>
-                                <li>Check the box to use the corresponding device in your experiment</li>
-                                <li>Put the title you wish to give the instrument you are using into the corresponding text box</li>
+                                <li>Check the box to select sensor(s) for this experiment.</li>
+                                <li>Once selected, use the text box to name the sensor. (ex: "top", "bottom")</li>
                             </ul>
                         </p>
                         <p>
@@ -49,13 +50,19 @@
                             <input type="checkbox" id="temp2Checkbox" />
                             <input type="text" name="temp2" id="temp2" disabled />
                         </p>
-                        <p>
-                            Both temperature sensors are connected from the enclosure over USB. Sensors 1 and 2 correspond to the numbers on the sensor enclosure.
-                        </p>
+                        <p>Both temperature sensors connect to the microcontroller in the enclosure.</p>
+                        <p>The microcontroller connects to the computer using a single USB connection.</p>
                     </div>
                     <br>
                     <div style="border-radius: 25px; border-color: #4CAF50; border-width: 3px; padding: 20px; width: 100%; border-style: solid;">
                         <h2 style="text-align: center;">VNAs</h2>
+                        <p>
+                            <b>Instructions:</b>
+                            <ul>
+                                <li>Check the box to select VNA(s) for this experiment.</li>
+                                <li>Once selected, use the text box to name the VNA. (ex: "top", "bottom")</li>
+                            </ul>
+                        </p>
                         <p>
                             <b>Compatible VNAs:</b>
                             <ul>
@@ -74,13 +81,17 @@
                             <input type="text" name="vna2" id="vna2" disabled />
                         </p>
                     </div>
-                    <input type="submit" value="Create Experiment" class="button" style="text-align: center;">
+                    <div style="padding: 20px; width: 100%; display: flex; align-items: center; justify-content: center;">
+                        <input type="submit" value="Create Experiment" class="button">
+                    </div>
                 </form>
             </div>
         </div>
         <div id="dashboard" class="tabcontent">
             <div style="border-radius: 25px; border-color: #008CBA; border-width: 3px; padding: 20px; width: 60%; border-style: solid;">
                 <h2>Experiment Setup Metadata</h2>
+                <b>Title: </b><span id="metadata-title"></span>
+                <br>
                 <b>Name: </b><span id="metadata-name"></span>
                 <br>
                 <b>CPA: </b><span id="metadata-cpa"></span>
@@ -103,6 +114,9 @@
                     <select name="port" id="port"></select>
                     <button id="refresh" class="button">Refresh</button>
                     <button id="connect" class="button">Connect</button>
+                    <p>Select the USB port to connect to using the dropdown menu.</p>
+                    <p>To refresh the list of available ports, click "Refresh".</p>
+                    <p>To connect to the device at the selected port, click "Connect".</p>
                 </div>
                 <div>
                     <h3>VNA</h3>
@@ -113,19 +127,20 @@
                     <label><b>VNA 2 IP:</b></label>
                     <input type="text" id="vna2IP" name="vna2IP">
                     <button id="connectVNA2" class="button">Connect</button>
+                    <p>Supply the IP address of the VNA you want to connect to.</p>
+                    <p>To connect to the VNA at that IP address, click "Connect".</p>
                 </div>
             </div>
             <br>
             <div style="border-radius: 25px; border-color: #008CBA; border-width: 3px; padding: 20px; width: 60%; border-style: solid;">
                 <h2>Configure Data Collection</h2>
-                <p>This will affect how often the frequency and temperature data will be collected and stored.
-                    After the set period, the application will retreive a csv and S2P file from any connected VNAs.
-                </p>
                 <label for="datarate"><b>Sampling Period:</b></label>
-                <input type="number" id="mins" name="mins"> min
-                <input type="number" id="datarate" name="datarate"> sec
+                <input type="number" id="mins" name="mins" min="0" max="60"> min
+                <input type="number" id="datarate" name="datarate" min="0" max="59"> sec
                 <button id="cfgRate" class="button">Update Config</button>
                 <br>
+                <p>The sampling period is how often data is collected.</p>
+                <p>To update the sampling period, change the minutes and/or seconds and then click "Update Config".</p>
                 <p><strong>Warning: Setting a low period may result in unnecessarily large amounts of data.</strong></p>
             </div>
             <br>

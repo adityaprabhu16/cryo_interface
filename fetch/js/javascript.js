@@ -93,30 +93,16 @@ function loadMetadata() {
         document.getElementById("metadata-cpa").textContent = data.cpa;
         document.getElementById("metadata-date").textContent = data.date;
         
-        mdT1 = document.getElementById("metadata-temp1");
-        mdT1.textContent = data.temp1;
-        if(!document.getElementById("temp1").disabled && mdT1.textContent.length == 0){
-            mdT1.textContent = "x";
-        }
-        // document.getElementById("metadata-temp1").textContent = data.temp1;
-        mdT2 = document.getElementById("metadata-temp2");
-        mdT2.textContent = data.temp2;
-        if(!document.getElementById("temp2").disabled && mdT2.textContent.length == 0){
-            mdT2.textContent = "x";
-        }
-        // document.getElementById("metadata-temp2").textContent = data.temp2;
-        mdV1 = document.getElementById("metadata-vna1");
-        mdV1.textContent = data.vna1;
-        if(!document.getElementById("vna1").disabled && mdV1.textContent.length == 0){
-            mdV1.textContent = "x";
-        }
-        // document.getElementById("metadata-vna1").textContent = data.vna1;
-        mdV2 = document.getElementById("metadata-vna2");
-        mdV2.textContent = data.vna2;
-        if(!document.getElementById("vna2").disabled && mdV2.textContent.length == 0){
-            mdV2.textContent = "x";
-        }
-        // document.getElementById("metadata-vna2").textContent = data.vna2;
+        // mdT1 = document.getElementById("metadata-temp1");
+        // mdT1.textContent = data.temp1;
+        // if(!document.getElementById("temp1").disabled && mdT1.textContent.length == 0){
+        //     mdT1.textContent = "x";
+        // }
+        document.getElementById("metadata-temp1").textContent = data.temp1 === null ? "[Not Selected]" : data.temp1;
+        document.getElementById("metadata-temp2").textContent = data.temp2 === null ? "[Not Selected]" : data.temp2;
+
+        document.getElementById("metadata-vna1").textContent = data.vna1 === null ? "[Not Selected]" : data.vna1;
+        document.getElementById("metadata-vna2").textContent = data.vna2 === null ? "[Not Selected]" : data.vna2;
 
 
     })
@@ -320,8 +306,8 @@ function init(){
             "name": "Temp 2",
         }],
         "layout": {
-            "width": 600,
-            "height": 400,
+            "width": 800,
+            "height": 500,
             "title": "Temperature (Celsius)"},
         "type": "line"
     });
