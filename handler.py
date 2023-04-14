@@ -44,10 +44,10 @@ def build_response_handler(app_thread: AppThread):
             # Serve this request depending on the requested path.
             if parsed.path in ['/', '/index', '/index.html']:
                 self.send_file_response('fetch/index.html')
-            elif parsed.path == '/js/javascript.js':
-                self.send_file_response('fetch/js/javascript.js', 'application/javascript')
-            elif parsed.path == '/css/styling.css':
-                self.send_file_response('fetch/css/styling.css', 'text/css')
+            elif parsed.path == '/index.js':
+                self.send_file_response('fetch/index.js', 'application/javascript')
+            elif parsed.path == '/index.css':
+                self.send_file_response('fetch/index.css', 'text/css')
             elif parsed.path == '/plotly-2.19.1.min.js':
                 self.send_file_response('fetch/plotly-2.19.1.min.js', content_type='application/javascript')
             elif parsed.path == '/api/metadata':
@@ -404,17 +404,18 @@ def build_response_handler(app_thread: AppThread):
             except:
                 self.send_json_response('Error parsing JSON contents.', status=HTTPStatus.BAD_REQUEST)
                 return
-            title = metadata.get('title')
+            
+            title = metadata.get('title').replace(' ', '_')
             name = metadata.get('name')
             cpa = metadata.get('cpa')
             date = metadata.get('date')
 
             # Check that a name, cpa, and date were provided
-            if name is None or cpa is None or date is None: # or title is None:
+            if name is None or cpa is None or date is None or title is None:
                 self.send_json_response('Missing required field.', status=HTTPStatus.BAD_REQUEST)
                 return
 
-            directory = f'{name}_{cpa}_{date}'
+            directory = f'{name}-{title}-{cpa}-{date}'
 
             try:
                 # Attempt to create the directory for storing experimental data.
@@ -432,14 +433,30 @@ def build_response_handler(app_thread: AppThread):
                 self.send_json_response(msg, status=HTTPStatus.INTERNAL_SERVER_ERROR)
                 return
             
+            temp1 = metadata.get('temp1')
+            if temp1 == '':
+                temp1 = 'temp1'
+
+            temp2 = metadata.get('temp2')
+            if temp2 == '':
+                temp2 = 'temp2'
+            
+            vna1 = metadata.get('vna1')
+            if vna1 == '':
+                vna1 = 'vna1'
+            
+            vna2 = metadata.get('vna2')
+            if vna2 == '':
+                vna2 = 'vna2'
+
             app_thread.metadata = Metadata(title=title,
                                            name=name,
                                            cpa=cpa,
                                            date=date,
-                                           temp1=metadata.get('temp1'),
-                                           temp2=metadata.get('temp2'),
-                                           vna1=metadata.get('vna1'),
-                                           vna2=metadata.get('vna2'))
+                                           temp1=temp1,
+                                           temp2=temp2,
+                                           vna1=vna1,
+                                           vna2=vna2)
             app_thread.dir = directory
             app_thread.experiment_selected = True
 

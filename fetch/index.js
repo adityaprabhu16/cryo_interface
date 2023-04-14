@@ -1,3 +1,4 @@
+
 function start() {
     fetch('/api/start', {
         method: 'POST'
@@ -31,7 +32,7 @@ function connect() {
         body: json
     })
     .then(res => res.json())
-    .then(data =>{
+    .then(data => {
         alert(data);
     })
     .catch(err => { 
@@ -42,7 +43,6 @@ function connect() {
 function connectVNA1() {
     const port = document.getElementById("vna1IP").value;
     const json = JSON.stringify(port);
-    console.log(json)
     fetch('/api/connect_vna1', {
         headers: {
             'Accept': 'application/json',
@@ -53,7 +53,7 @@ function connectVNA1() {
         body: json
     })
     .then(res => res.json())
-    .then(data =>{
+    .then(data => {
         alert(data);
     })
     .catch(err => { 
@@ -75,7 +75,7 @@ function connectVNA2() {
         body: json
     })
     .then(res => res.json())
-    .then(data =>{
+    .then(data => {
         alert(data);
     })
     .catch(err => { 
@@ -88,23 +88,15 @@ function loadMetadata() {
     .then(res => res.json())
     .then(data => {
         console.log(data);
-        // document.getElementById("metadata-title").textContent = "";
+        document.getElementById("metadata-title").textContent = data.title;
         document.getElementById("metadata-name").textContent = data.name;
         document.getElementById("metadata-cpa").textContent = data.cpa;
         document.getElementById("metadata-date").textContent = data.date;
-        
-        // mdT1 = document.getElementById("metadata-temp1");
-        // mdT1.textContent = data.temp1;
-        // if(!document.getElementById("temp1").disabled && mdT1.textContent.length == 0){
-        //     mdT1.textContent = "x";
-        // }
+
         document.getElementById("metadata-temp1").textContent = data.temp1 === null ? "[Not Selected]" : data.temp1;
         document.getElementById("metadata-temp2").textContent = data.temp2 === null ? "[Not Selected]" : data.temp2;
-
         document.getElementById("metadata-vna1").textContent = data.vna1 === null ? "[Not Selected]" : data.vna1;
         document.getElementById("metadata-vna2").textContent = data.vna2 === null ? "[Not Selected]" : data.vna2;
-
-
     })
     .catch(err => console.log(err));
 }
@@ -129,7 +121,6 @@ function loadPorts() {
 function refresh() {
     loadPorts();
 }
-
 
 function loadConfig() {
     fetch('/api/config')
@@ -160,14 +151,13 @@ function selectScreen() {
     });
 }
 
-function ExpFrmHandler(event){
+function ExpFrmHandler(event) {
     event.preventDefault();
     // capture the form data
     const formData = new FormData(event.target);
     console.log(formData.entries());
     // convert the form data to JSON format
     const jsonObj = Object.fromEntries(formData.entries());
-    console.log(jsonObj);
     const jsonData = JSON.stringify(jsonObj);
 
     fetch('/api/create_experiment', {
@@ -187,14 +177,13 @@ function ExpFrmHandler(event){
         });
 }
 
-function vna1IPEventHandler(event){
+function vna1IPEventHandler(event) {
     event.preventDefault();
     // capture the form data
     const formData = new FormData(event.target);
     console.log(formData.entries());
     // convert the form data to JSON format
     const jsonObj = Object.fromEntries(formData.entries());
-    console.log(jsonObj);
     const jsonData = JSON.stringify(jsonObj);
 
     fetch('/api/connect_vna1', {
@@ -218,9 +207,7 @@ function vna1IPEventHandler(event){
         });
 }
 
-
-
-function displayData(){
+function displayData() {
     var evtSource = new EventSource("api/stream_data");
     evtSource.addEventListener('temperature', (event) => {
         const data = JSON.parse(event.data);
@@ -233,7 +220,7 @@ function displayData(){
     });
 }
 
-function cfgRate(){
+function cfgRate() {
     var cfgJSON = {
         "period": getPeriodSeconds()
         // "period": document.getElementById("datarate").valueAsNumber,
@@ -250,7 +237,8 @@ function cfgRate(){
     })
     .then(res => res.json())
     .then(data => {
-        console.log(data);
+        // console.log(data);
+        alert(data);
         // TODO: use values we got back to update the UI
     })
     .catch(err =>{
@@ -258,13 +246,13 @@ function cfgRate(){
     });
 }
 
-function getPeriodSeconds(){
+function getPeriodSeconds() {
     var mins = document.getElementById("mins").valueAsNumber;
     var sec = document.getElementById("datarate").valueAsNumber;
     return (mins*60)+sec;
 }
 
-function init(){
+function init() {
     document.getElementById('date').valueAsDate = new Date();
 
     // var experiment_selected = false;

@@ -1,24 +1,24 @@
 <html>
     <head>
-        <link rel="stylesheet" href="css/styling.css">
+        <link rel="stylesheet" href="index.css">
         <script src="plotly-2.19.1.min.js"></script>
-        <script src="js/javascript.js"></script>
+        <script src="index.js"></script>
     </head>
     <body>
         <div id="new_experiment" class="tabcontent tabstyle">
             <div style="width: 100%; display: flex; justify-content: center;">
-                <!-- <p><h1>Create Experiment</h1></p> -->
-                <!-- <br> -->
-
                 <form id="create_experiment">
                     <div style="width: 100%; text-align: center;">
                         <h1>Create Experiment</h1>
                     </div>
-                    <!-- <br> -->
                     <div style="border-radius: 25px; border-color: #4CAF50; border-width: 3px; padding: 20px; width: 100%; border-style: solid;">
                         <h2 style="text-align: center;">Experiment Metadata</h2>
                         <p>
-                            <label for="name"><b>Name:</b></label>
+                            <label for="title"><b>Experiment Title:</b></label>
+                            <input id="title" name="title" type="text" required>
+                        </p>
+                        <p>
+                            <label for="name"><b>User:</b></label>
                             <input id="name" name="name" type="text" required>
                         </p>
                         <p>
