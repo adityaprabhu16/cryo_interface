@@ -173,6 +173,7 @@ class AppThread(Thread):
                                 self.vna_con2 = None
                         if not retry:
                             # Sleep until it's time to collect the next data point.
+                            # TODO: instead of sleeping the etire period, periodically check that it is still running/not killed.
                             time.sleep(self.config.period)
 
             while not self.running and not self.killed:

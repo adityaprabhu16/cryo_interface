@@ -256,10 +256,10 @@ def build_response_handler(app_thread: AppThread):
                 msg = f"Unable to open port '{port}'"
                 logging.exception(msg)
                 self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
+                return
 
             logging.info(f'Connected to USB device at {port}')
-            self.send_response_only(HTTPStatus.OK)
-            self.end_headers()
+            self.send_json_response('Connection successful.')
         
         def connect_vna1(self) -> None:
             """

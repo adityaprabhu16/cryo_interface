@@ -22,6 +22,7 @@ function stop() {
 function connect() {
     const port = document.getElementById("port").value;
     const json = JSON.stringify(port);
+    console.log(json);
     fetch('/api/connect', {
         headers: {
             'Accept': 'application/json',
@@ -36,6 +37,7 @@ function connect() {
         alert(data);
     })
     .catch(err => { 
+        console.log(err);
         console.log("Failed to connect to USB device.");
     });
 }
