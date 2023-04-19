@@ -64,6 +64,8 @@ class AppThread(Thread):
         # Run forever as long as the thread has not been killed.
         while not self.killed:
 
+            last_temp_reading = 0
+
             # If the experiment is running.
             if self.running:
                 path = os.path.join('experiments', self.dir, 'data.csv')
@@ -82,16 +84,8 @@ class AppThread(Thread):
                         # If we have a USB connection.
                         if self.con:
                             try:
-                                # Request temperature from ESP32
-                                self.con.write('GET TEMP\n'.encode('utf-8'))
-                                self.con.flush()
-
-                                # Read until the newline character, decode to utf-8,
-                                # and remove the ending newline character.
-                                data = self.con.readline().decode('utf-8').rstrip()
-                                # Get temperatures from the string.
-                                temp1, temp2 = [float(x) for x in data.split(',')]
-
+                                temp1, temp2 = self._read_temp_data()
+                                
                                 data = {
                                     'time': t,
                                     'temp1': temp1,
@@ -102,6 +96,8 @@ class AppThread(Thread):
                                 self.data.append(data)
                                 # Write to the CSV file.
                                 wf.write(f'{t},{temp1},{temp2}\n')
+
+                                last_temp_reading = t
 
                                 # Send data to every queue in the pool.
                                 for q in self.queue_pool:
@@ -186,11 +182,46 @@ class AppThread(Thread):
                             # Sleep until it's time to collect the next data point.
                             end_time = t + self.config.period
                             while self.running and not self.killed and time.time() < end_time:
+                                t = time.time()
+                                if self.con and t >= last_temp_reading + 15:
+                                    temp1, temp2 = self._read_temp_data()
+                                    data = {
+                                        'time': t,
+                                        'temp1': temp1,
+                                        'temp2': temp2,
+                                    }
+
+                                    # Store data points in memory.
+                                    self.data.append(data)
+
+                                    last_temp_reading = t
+
+                                    # Send data to every queue in the pool.
+                                    for q in self.queue_pool:
+                                        q.put(data)
+                                # Sleep to avoid wasting CPU resources.
                                 time.sleep(0.001)
 
             while not self.running and not self.killed:
+                t = time.time()
+                if self.con and t >= last_temp_reading + 15:
+                    temp1, temp2 = self._read_temp_data()
+                    data = {
+                        'time': t,
+                        'temp1': temp1,
+                        'temp2': temp2,
+                    }
+
+                    # Store data points in memory.
+                    self.data.append(data)
+
+                    last_temp_reading = t
+
+                    # Send data to every queue in the pool.
+                    for q in self.queue_pool:
+                        q.put(data)
                 # Sleep to avoid wasting CPU resources.
-                time.sleep(0.01)
+                time.sleep(0.001)
 
     def get_queue(self) -> queue.Queue:
         """
@@ -222,3 +253,16 @@ class AppThread(Thread):
             self.vna_con1.close()
         if self.vna_con2:
             self.vna_con2.close()
+
+    def _read_temp_data(self):
+        # Request temperature from ESP32
+        self.con.write('GET TEMP\n'.encode('utf-8'))
+        self.con.flush()
+
+        # Read until the newline character, decode to utf-8,
+        # and remove the ending newline character.
+        data = self.con.readline().decode('utf-8').rstrip()
+        # Get temperatures from the string.
+        temp1, temp2 = [float(x) for x in data.split(',')]
+
+        return temp1, temp2

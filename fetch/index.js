@@ -22,7 +22,6 @@ function stop() {
 function connect() {
     const port = document.getElementById("port").value;
     const json = JSON.stringify(port);
-    console.log(json);
     fetch('/api/connect', {
         headers: {
             'Accept': 'application/json',
@@ -159,7 +158,6 @@ function ExpFrmHandler(event) {
     event.preventDefault();
     // capture the form data
     const formData = new FormData(event.target);
-    console.log(formData.entries());
     // convert the form data to JSON format
     const jsonObj = Object.fromEntries(formData.entries());
     const jsonData = JSON.stringify(jsonObj);
