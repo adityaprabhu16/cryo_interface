@@ -118,6 +118,7 @@
                     <select name="port" id="port"></select>
                     <button id="refresh" class="button">Refresh</button>
                     <button id="connect" class="button">Connect</button>
+                    <span>[Not Connected]</span>
                     <p>Select the USB port to connect to using the dropdown menu.</p>
                     <p>To refresh the list of available ports, click "Refresh".</p>
                     <p>To connect to the device at the selected port, click "Connect".</p>
@@ -127,10 +128,12 @@
                     <label><b>VNA 1 IP:</b></label>
                     <input type="text" id="vna1IP" name="vna1IP">
                     <button id="connectVNA1" class="button">Connect</button>
+                    <span>[Not Connected]</span>
                     <br>
                     <label><b>VNA 2 IP:</b></label>
                     <input type="text" id="vna2IP" name="vna2IP">
                     <button id="connectVNA2" class="button">Connect</button>
+                    <span>[Not Connected]</span>
                     <p>Supply the IP address of the VNA you want to connect to.</p>
                     <p>To connect to the VNA at that IP address, click "Connect".</p>
                 </div>
@@ -150,6 +153,10 @@
             <br>
             <div style="border-radius: 25px; border-color: #008CBA; border-width: 3px; padding: 20px; width: 60%; border-style: solid;">
                 <h2>Collect Data</h2>
+                <div>
+                    <b>Data Collection: </b><span>[Disabled]</span>
+                </div>
+                <br>
                 <button id="startup" class="button">Start Logging</button>
                 <button id="stop" class="button">Stop Logging</button>
                 <div id="temp_plot"></div>
