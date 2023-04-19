@@ -30,7 +30,7 @@ class AppThread(Thread):
         self.metadata: Optional[Metadata] = None
 
         # Application runtime configuration.
-        self.config: Config = Config(period=30.0)
+        self.config: Config = Config(period=15*60)
 
         # Whether an experiment has been selected.
         self.experiment_selected = False

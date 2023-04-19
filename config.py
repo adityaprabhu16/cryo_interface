@@ -10,4 +10,4 @@ class Config:
     """
     Dataclass for storing the application's runtime configuration.
     """
-    period: float
+    period: int  # period in seconds

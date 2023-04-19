@@ -89,7 +89,6 @@ function loadMetadata() {
     fetch('/api/metadata')
     .then(res => res.json())
     .then(data => {
-        console.log(data);
         document.getElementById("metadata-title").textContent = data.title;
         document.getElementById("metadata-name").textContent = data.name;
         document.getElementById("metadata-cpa").textContent = data.cpa;
@@ -128,7 +127,10 @@ function loadConfig() {
     fetch('/api/config')
     .then(res => res.json())
     .then(data => {
-        document.getElementById("datarate").value = data.period;
+        const seconds = data.period % 60;
+        const minutes = Math.floor(data.period / 60);
+        document.getElementById('mins').value = minutes;
+        document.getElementById('datarate').value = seconds;
     })
     .catch(err => console.log(err));
 }
@@ -224,10 +226,8 @@ function displayData() {
 
 function cfgRate() {
     var cfgJSON = {
-        "period": getPeriodSeconds()
-        // "period": document.getElementById("datarate").valueAsNumber,
-    }   
-    console.log(cfgJSON);
+        "period": getPeriodSeconds(),
+    };
     fetch('/api/config', {
         method:'POST',
         headers: {
@@ -239,18 +239,21 @@ function cfgRate() {
     })
     .then(res => res.json())
     .then(data => {
-        // console.log(data);
-        alert(data);
-        // TODO: use values we got back to update the UI
+        const seconds = data.period % 60;
+        const minutes = Math.floor(data.period / 60);
+        document.getElementById('mins').value = minutes;
+        document.getElementById('datarate').value = seconds;
+        alert("Configuration updated.");
     })
     .catch(err =>{
-        alert("Failed to congifure data rate");
+        console.log(err);
+        alert("Failed to update configuration.");
     });
 }
 
 function getPeriodSeconds() {
-    var mins = document.getElementById("mins").valueAsNumber;
-    var sec = document.getElementById("datarate").valueAsNumber;
+    const mins = document.getElementById("mins").valueAsNumber;
+    const sec = document.getElementById("datarate").valueAsNumber;
     return (mins*60)+sec;
 }
 
