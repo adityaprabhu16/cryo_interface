@@ -184,42 +184,68 @@ class AppThread(Thread):
                             while self.running and not self.killed and time.time() < end_time:
                                 t = time.time()
                                 if self.con and t >= last_temp_reading + 15:
-                                    temp1, temp2 = self._read_temp_data()
-                                    data = {
-                                        'time': t,
-                                        'temp1': temp1,
-                                        'temp2': temp2,
-                                    }
 
-                                    # Store data points in memory.
-                                    self.data.append(data)
+                                    try:
+                                        temp1, temp2 = self._read_temp_data()
+                                        data = {
+                                            'time': t,
+                                            'temp1': temp1,
+                                            'temp2': temp2,
+                                        }
 
-                                    last_temp_reading = t
+                                        # Store data points in memory.
+                                        self.data.append(data)
 
-                                    # Send data to every queue in the pool.
-                                    for q in self.queue_pool:
-                                        q.put(data)
+                                        last_temp_reading = t
+
+                                        # Send data to every queue in the pool.
+                                        for q in self.queue_pool:
+                                            q.put(data)
+                                    
+                                    except serial.serialutil.SerialException:
+                                        msg = 'Encountered an error while communicating with the ESP32.' \
+                                            'Closing connection.'
+                                        logging.exception(msg)
+                                        try:
+                                            self.con.close()
+                                        except:
+                                            logging.exception('Error closing connection.')
+                                        self.con = None
+                                    except:
+                                        logging.exception('Exception encountered in app thread.')
                                 # Sleep to avoid wasting CPU resources.
                                 time.sleep(0.001)
 
             while not self.running and not self.killed:
                 t = time.time()
                 if self.con and t >= last_temp_reading + 15:
-                    temp1, temp2 = self._read_temp_data()
-                    data = {
-                        'time': t,
-                        'temp1': temp1,
-                        'temp2': temp2,
-                    }
+                    try:
+                        temp1, temp2 = self._read_temp_data()
+                        data = {
+                            'time': t,
+                            'temp1': temp1,
+                            'temp2': temp2,
+                        }
 
-                    # Store data points in memory.
-                    self.data.append(data)
+                        # Store data points in memory.
+                        self.data.append(data)
 
-                    last_temp_reading = t
+                        last_temp_reading = t
 
-                    # Send data to every queue in the pool.
-                    for q in self.queue_pool:
-                        q.put(data)
+                        # Send data to every queue in the pool.
+                        for q in self.queue_pool:
+                            q.put(data)
+                    except serial.serialutil.SerialException:
+                        msg = 'Encountered an error while communicating with the ESP32.' \
+                                'Closing connection.'
+                        logging.exception(msg)
+                        try:
+                            self.con.close()
+                        except:
+                            logging.exception('Error closing connection.')
+                        self.con = None
+                    except:
+                        logging.exception('Exception encountered in app thread.')
                 # Sleep to avoid wasting CPU resources.
                 time.sleep(0.001)
 

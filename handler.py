@@ -83,6 +83,15 @@ def build_response_handler(app_thread: AppThread):
                 self.send_json_response(find_previous_experiments())
             elif parsed.path == '/api/experiment_selected':
                 self.send_json_response(app_thread.experiment_selected)
+            elif parsed.path == '/api/devices_connected':
+                # these checks are not perfect
+                # a failure in the appthread has to occur for the connection to be set to None
+                data = {
+                    'temperature': (app_thread.con is not None),
+                    'vna1': (app_thread.vna_con1 is not None),
+                    'vna2': (app_thread.vna_con2 is not None),
+                }
+                self.send_json_response(data)
             else:
                 self.send_response_only(HTTPStatus.NOT_FOUND)
                 self.end_headers()
