@@ -50,6 +50,18 @@ def build_response_handler(app_thread: AppThread):
                 self.send_file_response('fetch/index.css', 'text/css')
             elif parsed.path == '/plotly-2.19.1.min.js':
                 self.send_file_response('fetch/plotly-2.19.1.min.js', content_type='application/javascript')
+            elif parsed.path == '/favicon-16x16.png':
+                self.send_response(HTTPStatus.OK)
+                self.send_header('Content-Type', 'image/png')
+                self.end_headers()
+                with open('fetch/favicon-16x16.png', 'rb') as f:
+                    self.wfile.write(f.read())
+            elif parsed.path == '/favicon-32x32.png':
+                self.send_response(HTTPStatus.OK)
+                self.send_header('Content-Type', 'image/png')
+                self.end_headers()
+                with open('fetch/favicon-32x32.png', 'rb') as f:
+                    self.wfile.write(f.read())
             elif parsed.path == '/api/metadata':
                 self.send_response(HTTPStatus.OK)
                 self.send_header('Content-type', 'application/json')

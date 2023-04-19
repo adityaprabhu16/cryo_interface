@@ -2,6 +2,7 @@
 Module for the AppThread class.
 """
 
+from datetime import datetime
 import logging
 import os
 import queue
@@ -121,28 +122,38 @@ class AppThread(Thread):
                         # If we are connected to VNA 1.
                         if self.vna_con1:
                             try:
+                                # Send command to copy a file from the VNA.
                                 self.vna_con1.send(build_cmd('MMEM:DATA? "FTEST.csv"'))
-                                recv = self.vna_con1.recv(100000)
-                                text = recv.decode('utf-8')
+
+                                # Receive up to 100KB of data.
+                                recv: bytes = self.vna_con1.recv(100000)
+
+                                # Decode the received data.
+                                text: str = recv.decode('utf-8')
 
                                 try:
+                                    # TODO: we need to find the last END index
+                                    # TODO: we need to count that the instances of BEGIN == instances of END
+                                    begin_idx = text.index('BEGIN')
                                     end_idx = text.index('END')
-                                    path = os.path.join('experiments',
-                                                        self.dir,
-                                                        f'vna1_{int(t)}.csv')
+                                    
+                                    dt = datetime.fromtimestamp(t)
+                                    f_name = f'{dt.year}_{dt.month}_{dt.day}_{dt.hour}_{dt.minute}_{dt.second}_vna1.csv'
+                                    path = os.path.join('experiments', self.dir, f_name)
+                                    
                                     with open(path, 'w', encoding='utf-8') as csv_wf:
-                                        for line in text[text.index('BEGIN'):text.index('END')].split('\n')[1:]:
+                                        for line in text[begin_idx:end_idx].split('\n')[1:]:
                                             csv_wf.write(line)
-                                    print('Done writing to CSV.')
+                                    logging.info('Done writing to CSV.')
                                 except ValueError:
                                     logging.exception('Error.')
                                     retry = True
                             except:
-                                logging.exception('Error')
+                                logging.exception('Error.')
                                 try:
                                     self.vna_con1.close()
                                 except:
-                                    logging.exception('Error closing connection')
+                                    logging.exception('Error closing connection.')
                                 self.vna_con1 = None
 
                         # If we are connected to VNA 2.
@@ -173,8 +184,9 @@ class AppThread(Thread):
                                 self.vna_con2 = None
                         if not retry:
                             # Sleep until it's time to collect the next data point.
-                            # TODO: instead of sleeping the etire period, periodically check that it is still running/not killed.
-                            time.sleep(self.config.period)
+                            end_time = t + self.config.period
+                            while self.running and not self.killed and time.time() < end_time:
+                                time.sleep(0.001)
 
             while not self.running and not self.killed:
                 # Sleep to avoid wasting CPU resources.
