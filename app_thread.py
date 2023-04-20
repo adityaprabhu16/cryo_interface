@@ -68,7 +68,7 @@ class AppThread(Thread):
 
             # If the experiment is running.
             if self.running:
-                path = os.path.join('experiments', self.dir, 'data.csv')
+                path = os.path.join('experiments', self.dir, 'temperatures.csv')
                 # Open the file for saving temperature data.
                 with open(path, 'w+', encoding='utf-8') as wf:
                     # We loop here so check again if the experiment is running and the

@@ -495,7 +495,7 @@ def build_response_handler(app_thread: AppThread):
                 # Check if a directory has been set. (It is set when the experiment is created.)
                 if app_thread.dir:
                     with open(os.path.join('experiments', app_thread.dir, 'metadata.json'), 'w') as wf:
-                        wf.write(json.dumps(app_thread.metadata, cls=EnhancedJSONEncoder))
+                        wf.write(json.dumps(app_thread.metadata, cls=EnhancedJSONEncoder, indent=4))
                     return True
             except:
                 logging.exception('Error occured while writing metadata.')
