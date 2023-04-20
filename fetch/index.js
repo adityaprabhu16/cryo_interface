@@ -2,7 +2,14 @@
 function start() {
     fetch('/api/start', {
         method: 'POST'
-    }).then(res=> res.json())
+    }).then(res=>{
+        if(res.status == 200){
+            const state = document.getElementById("dataStatus");
+            state.innerHTML = "Running";
+            state.style.border = '2px solid green';
+        }
+        return res.json();
+    })
     .then(data => alert(data))
     .catch(err => {
         console.log(err);
@@ -12,7 +19,14 @@ function start() {
 function stop() {
     fetch('/api/stop', {
         method: 'POST'
-    }).then(res => res.json())
+    }).then(res =>{
+        if(res.status == 200){
+            const state = document.getElementById("dataStatus");
+            state.innerHTML = "Stopped";
+            state.style.border = '2px solid red';
+        }
+        return res.json();
+    })
     .then(data => alert(data))
     .catch(err => {
         console.log(err);
@@ -31,7 +45,14 @@ function connect() {
         method: "POST",
         body: json
     })
-    .then(res => res.json())
+    .then(res => {
+        if(res.status == 200){
+            const state = document.getElementById("tempStatus");
+            state.innerHTML = "Connected";
+            state.style.border = '2px solid green';
+        }
+        return res.json();
+    })
     .then(data => {
         alert(data);
     })
@@ -55,6 +76,7 @@ function connectVNA1() {
     })
     .then(res => res.json())
     .then(data => {
+        checkStatus();
         alert(data);
     })
     .catch(err => { 
@@ -77,6 +99,7 @@ function connectVNA2() {
     })
     .then(res => res.json())
     .then(data => {
+        checkStatus();
         alert(data);
     })
     .catch(err => { 
@@ -255,6 +278,72 @@ function getPeriodSeconds() {
     return (mins*60)+sec;
 }
 
+var prev_data = null;
+
+function checkStatus() {
+    fetch('/api/devices_connected')
+    .then(res =>{
+        return res.json();
+    })
+    .then(data =>{
+        if (data.temperature) {
+            const state = document.getElementById("tempStatus");
+            state.innerHTML = "Connected";
+            state.style.border = '2px solid green';
+        } else {
+            const state = document.getElementById("tempStatus");
+            state.innerHTML = "Not Connected";
+            state.style.border = '2px solid red';
+            if (prev_data?.temperature) {
+                alert("Temperature sensor has disconnected.");
+            }
+        }
+
+        if (data.vna1) {
+            const state = document.getElementById("vna1status");
+            state.innerHTML = "Connected";
+            state.style.border = '2px solid green';
+        } else {
+            const state = document.getElementById("vna1status");
+            state.innerHTML = "Not Connected";
+            state.style.border = '2px solid red';
+            if (prev_data?.vna1) {
+                alert("VNA1 has disconnected.");
+            }
+        }
+
+        if (data.vna2) {
+            const state = document.getElementById("vna2status");
+            state.innerHTML = "Connected";
+            state.style.border = '2px solid green';
+        } else {
+            const state = document.getElementById("vna2status");
+            state.innerHTML = "Not Connected";
+            state.style.border = '2px solid red';
+            if (prev_data?.vna2) {
+                alert("VNA2 has disconnected.");
+            }
+        }
+
+        prev_data = data;
+    });
+
+    fetch('/api/running')
+    .then(res => res.json())
+    .then(data => {
+        if (data) {
+            const state = document.getElementById("dataStatus");
+            state.innerHTML = "Running";
+            state.style.border = '2px solid green';
+        } else {
+            const state = document.getElementById("dataStatus");
+            state.innerHTML = "Stopped";
+            state.style.border = '2px solid red';
+        }
+    })
+    .catch(err => console.log(err));
+}
+
 function init() {
     document.getElementById('date').valueAsDate = new Date();
 
@@ -310,6 +399,10 @@ function init() {
     displayData();
 
     selectScreen();
+
+    checkStatus();
+
+    setInterval(checkStatus, 10000);
 }
 
 document.addEventListener("DOMContentLoaded", init);
