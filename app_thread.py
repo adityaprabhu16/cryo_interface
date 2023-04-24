@@ -120,33 +120,6 @@ class AppThread(Thread):
                         # If we are connected to VNA 1.
                         if self.vna_con1:
                             try:
-                                # # Send command to copy a file from the VNA.
-                                # self.vna_con1.send(build_cmd('MMEM:DATA? "FTEST.csv"'))
-
-                                # # Receive up to 100KB of data.
-                                # recv: bytes = self.vna_con1.recv(100000)
-
-                                # # Decode the received data.
-                                # text: str = recv.decode('utf-8')
-
-                                # try:
-                                #     # TODO: we need to find the last END index
-                                #     # TODO: we need to count that the instances of BEGIN == instances of END
-                                #     begin_idx = text.index('BEGIN')
-                                #     end_idx = text.index('END')
-                                    
-                                #     dt = datetime.fromtimestamp(t)
-                                #     f_name = f'{dt.year}_{dt.month}_{dt.day}_{dt.hour}_{dt.minute}_{dt.second}_vna1.csv'
-                                #     path = os.path.join('experiments', self.dir, f_name)
-                                    
-                                #     with open(path, 'w', encoding='utf-8') as csv_wf:
-                                #         for line in text[begin_idx:end_idx].split('\n')[1:]:
-                                #             csv_wf.write(line)
-                                #     logging.info('Done writing to CSV.')
-                                # except ValueError:
-                                #     logging.exception('Error.')
-                                #     retry = True
-
                                 dt = datetime.fromtimestamp(t)
                                 name = f'{dt.year}_{dt.month}_{dt.day}_{dt.hour}_{dt.minute}_{dt.second}'
                                 
@@ -173,30 +146,30 @@ class AppThread(Thread):
 
                         # If we are connected to VNA 2.
                         if self.vna_con2:
-                            # try:
-                            #     self.vna_con2.send(build_cmd('MMEM:DATA? "FTEST.csv"'))
-                            #     recv = self.vna_con2.recv(100000)
-                            #     text = recv.decode('utf-8')
-                            #     try:
-                            #         end_idx = text.index('END')
-                            #         path = os.path.join('experiments',
-                            #                             self.dir,
-                            #                             f'vna2_{int(t)}.csv')
-                            #         with open(path, 'w', encoding='utf-8') as csv_wf:
-                            #             for line in text[text.index('BEGIN'):text.index('END')].split('\n')[1:]:
-                            #                 csv_wf.write(line)
-                            #         print('Done writing to CSV.')
-                            #     except ValueError:
-                            #         logging.exception('Error.')
-                            #         retry = True
-                            # except:
-                            #     logging.exception('Error')
-                            #     try:
-                            #         self.vna_con2.close()
-                            #     except:
-                            #         logging.exception('Error closing connection')
-                            #     self.vna_con2 = None
-                            pass
+                            try:
+                                dt = datetime.fromtimestamp(t)
+                                name = f'{dt.year}_{dt.month}_{dt.day}_{dt.hour}_{dt.minute}_{dt.second}'
+                                
+                                f_name = f'{name}_vna2.csv'
+                                fpath = os.path.join('experiments', self.dir, f_name)
+                                result = vna_csv(self.vna_con2, fpath)
+                                if not result:
+                                    retry = True
+                                    continue
+                                
+                                f_name = f'{name}_vna2.s2p'
+                                fpath = os.path.join('experiments', self.dir, f_name)
+                                result = vna_s2p(self.vna_con2, 201, fpath)
+                                if not result:
+                                    retry = True
+                                    continue
+                            except:
+                                logging.exception('Error.')
+                                try:
+                                    self.vna_con2.close()
+                                except:
+                                    logging.exception('Error closing connection.')
+                                self.vna_con2 = None
                         if not retry:
                             # Sleep until it's time to collect the next data point.
                             end_time = t + self.config.period
