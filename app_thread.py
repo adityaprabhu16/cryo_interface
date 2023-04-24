@@ -145,7 +145,13 @@ class AppThread(Thread):
                                 # except ValueError:
                                 #     logging.exception('Error.')
                                 #     retry = True
-                                vna_csv(self.vna_con1, 201)
+
+                                dt = datetime.fromtimestamp(t)
+                                f_name = f'{dt.year}_{dt.month}_{dt.day}_{dt.hour}_{dt.minute}_{dt.second}_vna1.csv'
+                                fpath = os.path.join('experiments', self.dir, f_name)
+                                result = vna_csv(self.vna_con1, fpath)
+                                if not result:
+                                    retry = True
                             except:
                                 logging.exception('Error.')
                                 try:
