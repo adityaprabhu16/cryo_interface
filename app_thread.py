@@ -15,7 +15,7 @@ import serial
 
 from config import Config
 from metadata import Metadata
-from vna import build_cmd
+# from vna import build_cmd
 from vna_funcs import vna_csv, vna_s2p
 
 
