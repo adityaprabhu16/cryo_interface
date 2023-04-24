@@ -147,11 +147,21 @@ class AppThread(Thread):
                                 #     retry = True
 
                                 dt = datetime.fromtimestamp(t)
-                                f_name = f'{dt.year}_{dt.month}_{dt.day}_{dt.hour}_{dt.minute}_{dt.second}_vna1.csv'
+                                name = f'{dt.year}_{dt.month}_{dt.day}_{dt.hour}_{dt.minute}_{dt.second}'
+                                
+                                f_name = f'{name}_vna1.csv'
                                 fpath = os.path.join('experiments', self.dir, f_name)
                                 result = vna_csv(self.vna_con1, fpath)
                                 if not result:
                                     retry = True
+                                    continue
+                                
+                                f_name = f'{name}_vna1.s2p'
+                                fpath = os.path.join('experiments', self.dir, f_name)
+                                result = vna_s2p(self.vna_con1, 201, fpath)
+                                if not result:
+                                    retry = True
+                                    continue
                             except:
                                 logging.exception('Error.')
                                 try:

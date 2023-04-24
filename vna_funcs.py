@@ -6,65 +6,50 @@ import time
 from vna import send_cmd
 
 
-def vna_s2p(s: socket.socket, resolution: int) -> bool:
+def vna_s2p(s: socket.socket, resolution: int, fpath: str) -> bool:
     # copy s2p file to computer
     # Example resolution input = 201 (number of data points)
 
-    # Variable init
-    # good_write = False
-    expected_size = resolution + 13
+    # 12 additional rows for data
+    expected_size = resolution + 12
 
     # Save trace into .s2p file on the VNA
     send_cmd(s, cmd='MMEM:STOR:SNP "CryoIntS.s2p"')
 
     # The transfer of data is an inconsistent task. This while loop was put in place to repeat it until the data is successfully written into a file
-    # while True:
-    send_cmd(s, cmd='MMEM:DATA? "CryoIntS.s2p"')
+    for _ in range(10):
+        send_cmd(s, cmd='MMEM:DATA? "CryoIntS.s2p"')
 
-    recv = s.recv(1000000) #recv data, arg sets max number of bytes
-    contents = recv.decode('utf-8')
+        recv = s.recv(1000000) #recv data, arg sets max number of bytes
+        contents = recv.decode('utf-8')
 
-    # The transfer would first write some artifact type number usually something like #533281.
-    #  The following code removes the characters before the first '!' which marks the start of the information we want
-    startCounter = 0
-    for index in contents:
-        if (index != '!'):
-            startCounter +=1
-        else:
-            break
-    contents = contents[startCounter:]
-    
-    #The file would also write with double spacing (skip lines). We don't want that especially for .s2p, so replace double new lines with just one.
-    contents = contents.replace("\n\n", "\n")
-    
-    #contents is now in the format we want the file to be in
+        try:
+            idx = contents.index('!')
+            contents = contents[idx:]
+        except ValueError:
+            time.sleep(1)
+            print('Trying again...')
+            continue
 
-    with open('CryoIntS.s2p', 'w+', encoding='utf-8') as f:
-        f.write(contents) #overwrite the file with content
-
-    print("Expected Number of Lines: ", expected_size)
+        lines = contents.rstrip().split('\r\n')
         
-    # The following code was taken and modified from an example on csv library page
-    # Essentially we are using the csv library to count the number of lines in the file
-    lCounter = 0
-    with open('CryoIntS.s2p', encoding='utf-8', newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=' ', quotechar='|') #make reader object for the file that was just written
-        for row in reader: #for every row/line in the file
-            lCounter+=1 #increment line counter
+        # print(f'expected={expected_size}; actual={len(lines)}')
 
-    print("Total Lines: ", lCounter)
+        with open(fpath, 'w', encoding='utf-8') as wf:
+            for line in lines:
+                wf.write(line+'\n')
 
-    # As mentioned above, the writing process is inconsistent. The code here is designed to check the number of lines and compare to what should be there.
-    # While this is an imperfect method, it had proved reliable
-    # limiter = 0
-    if lCounter == expected_size: #check if both line count and expected_size are the same
-        # good_write = True
-        print("s2p file written") #if yes, the write was good
-        return True
-    else:
-        return True
+        if len(lines) == expected_size:
+            print('Success!')
+            return True
+        else:
+            time.sleep(1)
+            print('Trying again...')
+            continue
 
     # return True #transfer is good, return True
+    print('Failed after 10 tries.')
+    return False
 
 
 def vna_csv(s: socket.socket, fpath: str) -> bool:
@@ -81,15 +66,19 @@ def vna_csv(s: socket.socket, fpath: str) -> bool:
         recv = s.recv(20000000) #recv data, arg sets max number of bytes
         contents = recv.decode('utf-8')
 
-        # with open('temp.txt', 'w') as wf:
-        #     wf.write(contents)
+        try:
+            idx = contents.index('!')
+            contents = contents[idx:]
+        except ValueError:
+            time.sleep(1)
+            continue
 
         bc = contents.count('BEGIN')
         ec = contents.count('END')
         if bc != 4 or ec != 4:
             print(f'BEGIN COUNT: {bc}; END COUNT: {ec}')
             print('File did not fully transfer.')
-            time.sleep(5)
+            time.sleep(1)
             continue
 
         # The transfer would first write some artifact type number usually something like #533281.
