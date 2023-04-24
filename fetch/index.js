@@ -74,7 +74,12 @@ function connectVNA1() {
         method: "POST",
         body: json
     })
-    .then(res => res.json())
+    .then(res => {
+        if(res.status == 200){
+            alert("Successfully Connected");
+        }
+        return res.json();
+    })
     .then(data => {
         checkStatus();
         alert(data);
@@ -97,7 +102,12 @@ function connectVNA2() {
         method: "POST",
         body: json
     })
-    .then(res => res.json())
+    .then(res => {
+        if(res.status == 200){
+            alert("Successfully Connected");
+        }
+        return res.json();
+    })
     .then(data => {
         checkStatus();
         alert(data);
@@ -128,7 +138,7 @@ function loadPorts() {
     fetch('/api/devices')
     .then(res => res.json())
     .then(data => {
-        const selector = document.querySelector("select");
+        const selector = document.getElementById("port");
         const items = selector.length;
         for (var i = items-1; i >= 0; i--) {
             selector.remove(i);
@@ -183,6 +193,7 @@ function ExpFrmHandler(event) {
     const formData = new FormData(event.target);
     // convert the form data to JSON format
     const jsonObj = Object.fromEntries(formData.entries());
+    console.log(jsonObj);
     const jsonData = JSON.stringify(jsonObj);
 
     fetch('/api/create_experiment', {
@@ -360,19 +371,59 @@ function init() {
     document.getElementById("refresh").addEventListener("click", refresh);
 
     document.getElementById('temp1Checkbox').onchange = function() {
-        document.getElementById('temp1').disabled = !this.checked;
+        var t1box = document.getElementById('temp1');
+        t1box.disabled = !this.checked;
+        //TODO: the following code adds an option to a drop down menu
+        var vna1opt1 = document.getElementById("vna1opt1");
+        var vna2opt1 = document.getElementById("vna2opt1");
+        if(t1box.disabled){
+            vna1opt1.style.display = "none";
+            vna2opt1.style.display = "none";
+        }
+        else{
+            vna1opt1.style.display = "block";
+            vna2opt1.style.display = "block";
+        }
+        
     };
 
     document.getElementById('temp2Checkbox').onchange = function() {
-        document.getElementById('temp2').disabled = !this.checked;
+        var t2box = document.getElementById('temp2');
+        t2box.disabled = !this.checked;
+        var vna1opt2 = document.getElementById("vna1opt2");
+        var vna2opt2 = document.getElementById("vna2opt2");
+        if(t2box.disabled){
+            vna1opt2.style.display = "none";
+            vna2opt2.style.display = "none";
+        }
+        else{
+            vna1opt2.style.display = "block";
+            vna2opt2.style.display = "block";
+        }
     };
 
     document.getElementById('vna1Checkbox').onchange = function() {
-        document.getElementById('vna1').disabled = !this.checked;
+        var v1box = document.getElementById('vna1');
+        v1box.disabled = !this.checked;
+        var v1select = document.getElementById("vna1_temp");
+        if(v1box.disabled){
+            v1select.style.display = "none";
+        }
+        else{
+            v1select.style.display = "block";
+        }
     };
 
     document.getElementById('vna2Checkbox').onchange = function() {
-        document.getElementById('vna2').disabled = !this.checked;
+        var v2box = document.getElementById('vna2')
+        v2box.disabled = !this.checked;
+        var v2select = document.getElementById("vna2_temp");
+        if(v2box.disabled){
+            v2select.style.display = "none";
+        }
+        else{
+            v2select.style.display = "block";
+        }
     };
 
     var tempPlot = Plotly.newPlot("temp_plot", {
