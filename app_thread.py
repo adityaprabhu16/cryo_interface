@@ -97,6 +97,7 @@ class AppThread(Thread):
                                 self.data.append(data)
                                 # Write to the CSV file.
                                 wf.write(f'{t},{temp1},{temp2}\n')
+                                wf.flush()
 
                                 last_temp_reading = t
 
