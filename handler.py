@@ -334,8 +334,7 @@ def build_response_handler(app_thread: AppThread):
                 return
 
             # Everything was good, respond with OK.
-            self.send_response_only(HTTPStatus.OK)
-            self.end_headers()
+            self.send_json_response('Successfully connected to VNA 1.', HTTPStatus.OK)
         
         def connect_vna2(self) -> None:
             """
@@ -389,8 +388,7 @@ def build_response_handler(app_thread: AppThread):
                 return
 
             # Everything was good, respond with OK.
-            self.send_response_only(HTTPStatus.OK)
-            self.end_headers()
+            self.send_json_response('Successfully connected to VNA 2.', HTTPStatus.OK)
 
         def create_experiment(self) -> None:
             """

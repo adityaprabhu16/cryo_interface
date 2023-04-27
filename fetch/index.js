@@ -76,23 +76,30 @@ function connectVNA1() {
     })
     .then(res => {
         if(res.status == 200){
-            alert("Successfully Connected");
+            const state = document.getElementById("vna1status");
+            state.innerHTML = "Connected";
+            state.style.border = '2px solid green';
+            // alert("Successfully Connected");
+        } else {
+            const state = document.getElementById("vna1status");
+            state.innerHTML = "Not Connected";
+            state.style.border = '2px solid red';
         }
         return res.json();
     })
     .then(data => {
-        checkStatus();
+        // checkStatus();
         alert(data);
     })
     .catch(err => { 
         console.log("Failed to connect to VNA.");
+        console.log(err);
     });
 }
 
 function connectVNA2() {
     const port = document.getElementById("vna2IP").value;
     const json = JSON.stringify(port);
-    console.log(json)
     fetch('/api/connect_vna2', {
         headers: {
             'Accept': 'application/json',
@@ -104,16 +111,24 @@ function connectVNA2() {
     })
     .then(res => {
         if(res.status == 200){
-            alert("Successfully Connected");
+            const state = document.getElementById("vna2status");
+            state.innerHTML = "Connected";
+            state.style.border = '2px solid green';
+            // alert("Successfully Connected");
+        } else {
+            const state = document.getElementById("vna2status");
+            state.innerHTML = "Not Connected";
+            state.style.border = '2px solid red';
         }
         return res.json();
     })
     .then(data => {
-        checkStatus();
+        // checkStatus();
         alert(data);
     })
     .catch(err => { 
         console.log("Failed to connect to VNA.");
+        console.log(err);
     });
 }
 
@@ -223,35 +238,35 @@ function ExpFrmHandler(event) {
         });
 }
 
-function vna1IPEventHandler(event) {
-    event.preventDefault();
-    // capture the form data
-    const formData = new FormData(event.target);
-    console.log(formData.entries());
-    // convert the form data to JSON format
-    const jsonObj = Object.fromEntries(formData.entries());
-    const jsonData = JSON.stringify(jsonObj);
+// function vna1IPEventHandler(event) {
+//     event.preventDefault();
+//     // capture the form data
+//     const formData = new FormData(event.target);
+//     console.log(formData.entries());
+//     // convert the form data to JSON format
+//     const jsonObj = Object.fromEntries(formData.entries());
+//     const jsonData = JSON.stringify(jsonObj);
 
-    fetch('/api/connect_vna1', {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                "length": jsonData.length.toString()
-            },
-            method: "POST",
-            body: jsonData
-        })
-        .then(res => {
-            if (res.status == 200) {
-                alert("Connection successful.");
-            } else {
-                console.log("Failed to connect to VNA.");
-            }
-        })
-        .catch(err => { 
-            console.log("Failed to connect to VNA.");
-        });
-}
+//     fetch('/api/connect_vna1', {
+//             headers: {
+//                 'Accept': 'application/json',
+//                 'Content-Type': 'application/json',
+//                 "length": jsonData.length.toString()
+//             },
+//             method: "POST",
+//             body: jsonData
+//         })
+//         .then(res => {
+//             if (res.status == 200) {
+//                 alert("Connection successful.");
+//             } else {
+//                 console.log("Failed to connect to VNA.");
+//             }
+//         })
+//         .catch(err => { 
+//             console.log("Failed to connect to VNA.");
+//         });
+// }
 
 function displayData() {
     var evtSource = new EventSource("api/stream_data");

@@ -119,6 +119,7 @@ class AppThread(Thread):
 
                         # If we are connected to VNA 1.
                         if self.vna_con1:
+                            print('VNA1')
                             try:
                                 dt = datetime.fromtimestamp(t)
                                 name = f'{dt.year}_{dt.month:02d}_{dt.day:02d}_{dt.hour:02d}_{dt.minute:02d}_{dt.second:02d}'
@@ -146,6 +147,7 @@ class AppThread(Thread):
 
                         # If we are connected to VNA 2.
                         if self.vna_con2:
+                            print('VNA2')
                             try:
                                 dt = datetime.fromtimestamp(t)
                                 name = f'{dt.year}_{dt.month:02d}_{dt.day:02d}_{dt.hour:02d}_{dt.minute:02d}_{dt.second:02d}'
@@ -170,10 +172,11 @@ class AppThread(Thread):
                                 except:
                                     logging.exception('Error closing connection.')
                                 self.vna_con2 = None
+                        
                         if not retry:
                             # Sleep until it's time to collect the next data point.
-                            end_time = t + self.config.period
-                            while self.running and not self.killed and time.time() < end_time:
+                            start_time = t
+                            while self.running and not self.killed and time.time() < start_time + self.config.period:
                                 t = time.time()
                                 if self.con and t >= last_reading + 15:
 
