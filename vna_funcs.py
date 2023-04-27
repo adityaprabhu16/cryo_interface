@@ -1,10 +1,29 @@
 
 import csv
+import logging
 import socket
 import time
 
 from vna import send_cmd
 
+
+def ping_vna(s: socket.socket) -> bool:
+    """
+    :return: True if the VNA could be pinged, False otherwise.
+    """
+    try:
+        # Ask the VNA to identify itself.
+        send_cmd(s, cmd='*IDN?')
+        # Read the response back.
+        recv = s.recv(2048)
+        return True
+    except:
+        logging.exception('Error.')
+        try:
+            s.close()
+        except:
+            logging.exception('Error closing connection.')
+        return False
 
 def vna_s2p(s: socket.socket, resolution: int, fpath: str) -> bool:
     # copy s2p file to computer

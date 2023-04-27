@@ -16,7 +16,7 @@ import serial
 from config import Config
 from metadata import Metadata
 # from vna import build_cmd
-from vna_funcs import vna_csv, vna_s2p
+from vna_funcs import ping_vna, vna_csv, vna_s2p
 
 
 class AppThread(Thread):
@@ -65,7 +65,7 @@ class AppThread(Thread):
         # Run forever as long as the thread has not been killed.
         while not self.killed:
 
-            last_temp_reading = 0
+            last_reading = 0
 
             # If the experiment is running.
             if self.running:
@@ -99,7 +99,7 @@ class AppThread(Thread):
                                 wf.write(f'{t},{temp1},{temp2}\n')
                                 wf.flush()
 
-                                last_temp_reading = t
+                                last_reading = t
 
                                 # Send data to every queue in the pool.
                                 for q in self.queue_pool:
@@ -175,7 +175,7 @@ class AppThread(Thread):
                             end_time = t + self.config.period
                             while self.running and not self.killed and time.time() < end_time:
                                 t = time.time()
-                                if self.con and t >= last_temp_reading + 15:
+                                if self.con and t >= last_reading + 15:
 
                                     try:
                                         temp1, temp2 = self._read_temp_data()
@@ -187,8 +187,6 @@ class AppThread(Thread):
 
                                         # Store data points in memory.
                                         self.data.append(data)
-
-                                        last_temp_reading = t
 
                                         # Send data to every queue in the pool.
                                         for q in self.queue_pool:
@@ -205,12 +203,25 @@ class AppThread(Thread):
                                         self.con = None
                                     except:
                                         logging.exception('Exception encountered in app thread.')
+
+                                    if self.vna_con1:
+                                        # Ping VNA 1 to see if it's still connected.
+                                        if not ping_vna(self.vna_con1):
+                                            self.vna_con1 = None
+
+                                    if self.vna_con2:
+                                        # Ping VNA 2 to see if it's still connected.
+                                        if not ping_vna(self.vna_con2):
+                                            self.vna_con2 = None
+                                    
+                                    last_reading = t
+                                    
                                 # Sleep to avoid wasting CPU resources.
                                 time.sleep(0.001)
 
             while not self.running and not self.killed:
                 t = time.time()
-                if self.con and t >= last_temp_reading + 15:
+                if self.con and t >= last_reading + 15:
                     try:
                         temp1, temp2 = self._read_temp_data()
                         data = {
@@ -221,8 +232,6 @@ class AppThread(Thread):
 
                         # Store data points in memory.
                         self.data.append(data)
-
-                        last_temp_reading = t
 
                         # Send data to every queue in the pool.
                         for q in self.queue_pool:
@@ -238,6 +247,18 @@ class AppThread(Thread):
                         self.con = None
                     except:
                         logging.exception('Exception encountered in app thread.')
+
+                    if self.vna_con1:
+                        # Ping VNA 1 to see if it's still connected.
+                        if not ping_vna(self.vna_con1):
+                            self.vna_con1 = None
+
+                    if self.vna_con2:
+                        # Ping VNA 2 to see if it's still connected.
+                        if not ping_vna(self.vna_con2):
+                            self.vna_con2 = None
+
+                    last_reading = t
                 # Sleep to avoid wasting CPU resources.
                 time.sleep(0.001)
 
