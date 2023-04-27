@@ -130,6 +130,8 @@ function loadMetadata() {
         document.getElementById("metadata-temp2").textContent = data.temp2 === null ? "[Not Selected]" : data.temp2;
         document.getElementById("metadata-vna1").textContent = data.vna1 === null ? "[Not Selected]" : data.vna1;
         document.getElementById("metadata-vna2").textContent = data.vna2 === null ? "[Not Selected]" : data.vna2;
+        document.getElementById("metadata-vna1_temp").textContent = data.vna2 === null ? "[Not Selected]" : data.vna1_temp;
+        document.getElementById("metadata-vna2_temp").textContent = data.vna2 === null ? "[Not Selected]" : data.vna2_temp;
     })
     .catch(err => console.log(err));
 }
@@ -376,9 +378,17 @@ function init() {
         //TODO: the following code adds an option to a drop down menu
         var vna1opt1 = document.getElementById("vna1opt1");
         var vna2opt1 = document.getElementById("vna2opt1");
+        var vna1select = document.getElementById("vna1_temp");
+        var vna2select = document.getElementById("vna2_temp");
         if(t1box.disabled){
             vna1opt1.style.display = "none";
             vna2opt1.style.display = "none";
+            if(vna1select.value == "temp1"){
+                vna1select.value = "";
+            }
+            if(vna2select.value == "temp1"){
+                vna2select.value = "";
+            }
         }
         else{
             vna1opt1.style.display = "block";
@@ -392,9 +402,17 @@ function init() {
         t2box.disabled = !this.checked;
         var vna1opt2 = document.getElementById("vna1opt2");
         var vna2opt2 = document.getElementById("vna2opt2");
+        var vna1select = document.getElementById("vna1_temp");
+        var vna2select = document.getElementById("vna2_temp");
         if(t2box.disabled){
             vna1opt2.style.display = "none";
             vna2opt2.style.display = "none";
+            if(vna1select.value == "temp2"){
+                vna1select.value = "";
+            }
+            if(vna2select.value == "temp2"){
+                vna2select.value = "";
+            }
         }
         else{
             vna1opt2.style.display = "block";
@@ -408,8 +426,12 @@ function init() {
         var v1select = document.getElementById("vna1_temp");
         if(v1box.disabled){
             v1select.style.display = "none";
+            if(v1select.hasAttribute("required")){
+                v1select.removeAttribute("required");
+            }
         }
         else{
+            v1select.setAttribute("required", true);
             v1select.style.display = "block";
         }
     };
@@ -420,8 +442,12 @@ function init() {
         var v2select = document.getElementById("vna2_temp");
         if(v2box.disabled){
             v2select.style.display = "none";
+            if(v2select.hasAttribute("required")){
+                v2select.removeAttribute("required");
+            }
         }
         else{
+            v2select.setAttribute("required", true);
             v2select.style.display = "block";
         }
     };
