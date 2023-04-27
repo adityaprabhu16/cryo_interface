@@ -53,17 +53,26 @@ for file in sorted(os.listdir(target_dir)):
     x = file.removesuffix('.csv').split('_')
 
     # Create integer timestamp from the file name.
-    ts = int(time.mktime(datetime.datetime(int(x[0]), int(x[1]), int(x[2]), int(x[3]), int(x[4]), int(x[5])).timetuple()))
+    try:
+        ts = int(time.mktime(datetime.datetime(int(x[0]), int(x[1]), int(x[2]), int(x[3]), int(x[4]), int(x[5])).timetuple()))
+    except (IndexError, ValueError):
+        print(f'WARNING: Encountered a .csv file with an invalid name: {file}')
+        continue
+
+    vna = x[-1]
 
     # Build name for the new sheet.
-    if x[-1] == 'vna1':
+    if vna == 'vna1':
         vna1_count += 1
         sheet_name = f'v1_{vna1_count}'
-    elif x[-1] == 'vna2':
+        temp_sensor = metadata.get('vna1_temp')
+    elif vna == 'vna2':
         vna2_count += 1
         sheet_name = f'v2_{vna2_count}'
+        temp_sensor = metadata.get('vna2_temp')
     else:
-        raise RuntimeError('Encountered a csv file with an invalid name.')
+        print(f'WARNING: Encountered a .csv file with an invalid name: {file}')
+        continue
     
     # Create new sheet.
     wb.create_sheet(sheet_name)
@@ -80,7 +89,12 @@ for file in sorted(os.listdir(target_dir)):
     if temp is None:
         print(f'WARNING: Unable to find corresponding temperature for {sheet_name}.')
     else:
-        ws['B1'] = temp[0]  # TODO: must decide between temp1 and temp2
+        if temp_sensor == 'temp1':
+            ws['B1'] = temp[0]
+        elif temp_sensor == 'temp2':
+            ws['B1'] = temp[1]
+        else:
+            ws['B1'] = None
 
     # Add CSV below temperature.
     fpath = os.path.join(target_dir, file)

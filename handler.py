@@ -470,6 +470,22 @@ def build_response_handler(app_thread: AppThread):
             if vna2 == '':
                 vna2 = 'vna2'
 
+            vna1_temp = metadata.get('vna1_temp')
+            # Check that the associated temperature selection was actually selected.
+            if (vna1_temp == 'temp1' and not temp1) or (vna1_temp == 'temp2' and not temp2):
+                msg = 'The temperature sensor associated with VNA 1 was not selected.'
+                logging.warning(msg)
+                self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
+                return
+
+            vna2_temp = metadata.get('vna2_temp')
+            # Check that the associated temperature selection was actually selected.
+            if (vna2_temp == 'temp1' and not temp1) or (vna2_temp == 'temp2' and not temp2):
+                msg = 'The temperature sensor associated with VNA 2 was not selected.'
+                logging.warning(msg)
+                self.send_json_response(msg, status=HTTPStatus.BAD_REQUEST)
+                return
+
             app_thread.metadata = Metadata(title=title,
                                            name=name,
                                            cpa=cpa,
@@ -477,7 +493,9 @@ def build_response_handler(app_thread: AppThread):
                                            temp1=temp1,
                                            temp2=temp2,
                                            vna1=vna1,
-                                           vna2=vna2)
+                                           vna2=vna2,
+                                           vna1_temp=vna1_temp,
+                                           vna2_temp=vna2_temp)
             app_thread.dir = directory
             app_thread.experiment_selected = True
 
