@@ -130,8 +130,8 @@ function loadMetadata() {
         document.getElementById("metadata-temp2").textContent = data.temp2 === null ? "[Not Selected]" : data.temp2;
         document.getElementById("metadata-vna1").textContent = data.vna1 === null ? "[Not Selected]" : data.vna1;
         document.getElementById("metadata-vna2").textContent = data.vna2 === null ? "[Not Selected]" : data.vna2;
-        document.getElementById("metadata-vna1_temp").textContent = data.vna2 === null ? "[Not Selected]" : data.vna1_temp;
-        document.getElementById("metadata-vna2_temp").textContent = data.vna2 === null ? "[Not Selected]" : data.vna2_temp;
+        document.getElementById("metadata-vna1_temp").textContent = data.vna1_temp === null ? "[Not Selected]" : data.vna1_temp;
+        document.getElementById("metadata-vna2_temp").textContent = data.vna2_temp === null ? "[Not Selected]" : data.vna2_temp;
     })
     .catch(err => console.log(err));
 }
@@ -194,7 +194,15 @@ function ExpFrmHandler(event) {
     // capture the form data
     const formData = new FormData(event.target);
     // convert the form data to JSON format
-    const jsonObj = Object.fromEntries(formData.entries());
+    var jsonObj = Object.fromEntries(formData.entries());
+    // We want these as null, not empty string.
+    if (jsonObj.vna1_temp === "") {
+        jsonObj.vna1_temp = null;
+    }
+    if (jsonObj.vna2_temp === "") {
+        jsonObj.vna2_temp = null;
+    }
+
     console.log(jsonObj);
     const jsonData = JSON.stringify(jsonObj);
 
@@ -384,10 +392,10 @@ function init() {
             vna1opt1.style.display = "none";
             vna2opt1.style.display = "none";
             if(vna1select.value == "temp1"){
-                vna1select.value = "";
+                vna1select.value = null;
             }
             if(vna2select.value == "temp1"){
-                vna2select.value = "";
+                vna2select.value = null;
             }
         }
         else{
@@ -408,10 +416,10 @@ function init() {
             vna1opt2.style.display = "none";
             vna2opt2.style.display = "none";
             if(vna1select.value == "temp2"){
-                vna1select.value = "";
+                vna1select.value = null;
             }
             if(vna2select.value == "temp2"){
-                vna2select.value = "";
+                vna2select.value = null;
             }
         }
         else{
