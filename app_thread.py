@@ -121,7 +121,7 @@ class AppThread(Thread):
                         if self.vna_con1:
                             try:
                                 dt = datetime.fromtimestamp(t)
-                                name = f'{dt.year}_{dt.month}_{dt.day}_{dt.hour}_{dt.minute}_{dt.second}'
+                                name = f'{dt.year}_{dt.month:02d}_{dt.day:02d}_{dt.hour:02d}_{dt.minute:02d}_{dt.second:02d}'
                                 
                                 f_name = f'{name}_vna1.csv'
                                 fpath = os.path.join('experiments', self.dir, f_name)
@@ -148,7 +148,7 @@ class AppThread(Thread):
                         if self.vna_con2:
                             try:
                                 dt = datetime.fromtimestamp(t)
-                                name = f'{dt.year}_{dt.month}_{dt.day}_{dt.hour}_{dt.minute}_{dt.second}'
+                                name = f'{dt.year}_{dt.month:02d}_{dt.day:02d}_{dt.hour:02d}_{dt.minute:02d}_{dt.second:02d}'
                                 
                                 f_name = f'{name}_vna2.csv'
                                 fpath = os.path.join('experiments', self.dir, f_name)
