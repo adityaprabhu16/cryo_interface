@@ -488,7 +488,17 @@ function init() {
         "layout": {
             "width": 800,
             "height": 500,
-            "title": "Temperature (Celsius)"},
+            "xaxis": {
+                "title": {
+                    "text": "Time",
+                },
+            },
+            "yaxis": {
+                "title": {
+                    "text": "Temperature (Celcius)",
+                },
+            },
+            "title": "Temperature vs Time"},
         "type": "line"
     });
 

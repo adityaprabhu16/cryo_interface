@@ -136,6 +136,7 @@
                     <p>Select the USB port to connect to using the dropdown menu.</p>
                     <p>To refresh the list of available ports, click "Refresh".</p>
                     <p>To connect to the device at the selected port, click "Connect".</p>
+                    <p>Once the device is connected, real-time temperature will be displayed on the graph below.</p>
                 </div>
                 <div>
                     <h3>VNA</h3>
@@ -162,7 +163,7 @@
                 <br>
                 <p>The sampling period is how often data is collected.</p>
                 <p>To update the sampling period, change the minutes and/or seconds and then click "Update Config".</p>
-                <p><strong>Warning: Setting a low period may result in unnecessarily large amounts of data.</strong></p>
+                <p><strong>Warning: Setting a low period may result in unnecessarily large amounts of data. It is not recommended to set the sampling period to less than one minute.</strong></p>
             </div>
             <br>
             <div style="border-radius: 25px; border-color: #008CBA; border-width: 3px; padding: 20px; width: 60%; border-style: solid;">
@@ -170,7 +171,18 @@
                 <br>
                 <button id="startup" class="button">Start Logging</button>
                 <button id="stop" class="button">Stop Logging</button>
+                <p>Click "Start Logging" to save temperature data to the temperatures.csv file and begin logging data from the VNAs.</p>
                 <div id="temp_plot"></div>
+            </div>
+            <br>
+            <div style="border-radius: 25px; border-color: #008CBA; border-width: 3px; padding: 20px; width: 60%; border-style: solid;">
+                <h2 style="display: inline-block;">Shutting Down</h2>
+                <p>To close the program and end the experiment, return to the terminal window and kill the python process with "Ctrl+C".</p>
+                <p><strong>Note: It is recommended to first "Stop Logging" before stopping the server.</strong></p>
+            </div>
+            <br>
+            <div>
+                Version 1.0 | Last Updated May 2023 | Duncan, Lundell, Prabhu, Sellner
             </div>
         </div>
     </body>
